@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/AuthContext";
@@ -205,6 +206,18 @@ export default function Feed() {
   return (
     <StoryProvider>
       <SafeAreaView className="flex-1 bg-[#f0f2f5]" edges={["top"]}>
+        {/* Brand Header */}
+        <View className="bg-white px-4 py-2 flex-row items-center border-b border-gray-200">
+          <Image
+            source={{
+              uri: `${API_BASE_URL}/uploads/gadalogo.png`,
+            }}
+            className="w-10 h-10 mr-2"
+            resizeMode="contain"
+          />
+          <Text className="text-[#1877F2] text-2xl font-bold">Gada.chat</Text>
+        </View>
+
         <FlatList
           data={listWithLive}
           keyExtractor={(item, index) =>
@@ -218,9 +231,7 @@ export default function Feed() {
           ListHeaderComponent={
             <View>
               {/* Create Post Section */}
-              <View className="bg-white mb-2">
-                <CreatePostInput onPostSuccess={() => loadPosts(true)} />
-              </View>
+              <CreatePostInput onPostSuccess={() => loadPosts(true)} />
 
               {/* Stories Section */}
               <View className="bg-white mb-2 py-4">

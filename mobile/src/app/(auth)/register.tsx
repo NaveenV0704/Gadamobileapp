@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -47,11 +48,6 @@ export default function Register() {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
-      return;
-    }
-
     setLoading(true);
     try {
       const success = await register(
@@ -62,16 +58,12 @@ export default function Register() {
         password,
         referral,
       );
+
       if (success) {
         Alert.alert(
           "Success",
-          "Registration completed successfully, Please check your email and activate the account",
+          "Registration completed. Please verify your email.",
           [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
-        );
-      } else {
-        Alert.alert(
-          "Registration Failed",
-          "Could not create account or email already in use",
         );
       }
     } catch (error: any) {
@@ -82,7 +74,7 @@ export default function Register() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-cardBg">
       <ScrollView
         contentContainerStyle={{
           padding: 24,
@@ -90,106 +82,103 @@ export default function Register() {
           justifyContent: "center",
         }}
       >
+        {/* Brand Header */}
         <View className="items-center mb-8">
-          <Text className="text-3xl font-bold text-blue-600 mb-2">
-            Create Account
+          <View className="flex-row items-center mb-2">
+            <Image
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+              }}
+              className="w-12 h-12 mr-2"
+              resizeMode="contain"
+            />
+            <Text className="text-brand text-4xl font-bold">Gada.chat</Text>
+          </View>
+
+          <Text className="text-textPrimary text-center">
+            Connect with friends and the world around you
           </Text>
-          <Text className="text-gray-500">Join Gada Mobile today</Text>
         </View>
 
-        <View className="w-full">
-          {/* First + Last Name Row */}
-          <View className="flex-row mb-4">
+        {/* Form Card */}
+        <View className="w-full border border-borderDefault rounded-xl p-5 bg-cardBg shadow-sm">
+          <View className="items-center mb-6">
+            <Text className="text-2xl font-bold text-brand mb-1">
+              Create Account
+            </Text>
+            <Text className="text-textMuted text-center">Join Gada today</Text>
+          </View>
+
+          {/* Name Row */}
+          <View className="flex-row mb-2">
             <View className="flex-1 mr-2">
               <Input
-                placeholder="First Name"
+                label="First Name"
                 value={firstname}
                 onChangeText={setFirstname}
-                label="First Name"
               />
             </View>
 
             <View className="flex-1 ml-2">
               <Input
-                placeholder="Last Name"
+                label="Last Name"
                 value={lastname}
                 onChangeText={setLastname}
-                label="Last Name"
               />
             </View>
           </View>
 
-          {/* Username */}
-          <View className="mb-4">
-            <Input
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              label="Username"
-            />
-          </View>
+          <Input
+            label="Username"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
 
-          {/* Email */}
-          <View className="mb-4">
-            <Input
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              label="Email"
-            />
-          </View>
+          <Input
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+          />
 
-          {/* Password */}
-          <View className="mb-4">
-            <Input
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              label="Password"
-              rightElement={
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color="#6b7280" />
-                  ) : (
-                    <Eye size={20} color="#6b7280" />
-                  )}
-                </TouchableOpacity>
-              }
-            />
-          </View>
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            rightElement={
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff size={20} color="#6B7280" />
+                ) : (
+                  <Eye size={20} color="#6B7280" />
+                )}
+              </TouchableOpacity>
+            }
+          />
 
-          {/* Confirm Password */}
-          <View className="mb-4">
-            <Input
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              label="Confirm Password"
-              rightElement={
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={20} color="#6b7280" />
-                  ) : (
-                    <Eye size={20} color="#6b7280" />
-                  )}
-                </TouchableOpacity>
-              }
-            />
-          </View>
+          <Input
+            label="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showConfirmPassword}
+            rightElement={
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#6B7280" />
+                ) : (
+                  <Eye size={20} color="#6B7280" />
+                )}
+              </TouchableOpacity>
+            }
+          />
 
-          {/* Button */}
           <Button
             onPress={handleRegister}
-            className="w-full mt-2"
+            className="w-full mt-3"
             disabled={loading}
           >
             {loading ? (
@@ -199,11 +188,12 @@ export default function Register() {
             )}
           </Button>
 
-          {/* Login Link */}
           <View className="flex-row justify-center mt-4">
-            <Text className="text-gray-600 mr-1">Already have an account?</Text>
+            <Text className="text-textMuted mr-1">
+              Already have an account?
+            </Text>
             <Link href="/(auth)/login" asChild>
-              <Text className="text-blue-600 font-bold">Login</Text>
+              <Text className="text-brand font-bold">Login</Text>
             </Link>
           </View>
         </View>
