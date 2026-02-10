@@ -5,13 +5,15 @@ import {
   Alert,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
+  ScrollView,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -27,253 +29,270 @@ export default function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ---------------- cooldown timer ----------------
+
   useEffect(() => {
     if (cooldown > 0) {
-      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
     }
   }, [cooldown]);
 
-  // Step 1: Send OTP
+  // ---------------- actions ----------------
+  const isValidEmail = (v: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const emailValid = isValidEmail(email);
+
   const handleSendOtp = async () => {
-    if (!email) {
-      Alert.alert("Error", "Please enter your email address");
+    if (!isValidEmail(email)) {
+      Alert.alert("Error", "Enter a valid email address");
       return;
     }
 
     setLoading(true);
     try {
-      const success = await sendOtp(email);
-      if (success) {
-        Alert.alert("Success", "OTP sent to your email");
+      const ok = await sendOtp(email.trim());
+      if (ok) {
         setStep(2);
         setCooldown(30);
-      } else {
-        Alert.alert("Error", "Failed to send OTP. Please check your email.");
       }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendOtp = async () => {
-    if (!email) {
-      Alert.alert("Error", "Please enter your email first");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const success = await resendOtp(email);
-      if (success) {
-        Alert.alert("Success", "OTP resent successfully");
-        setCooldown(30);
-      } else {
-        Alert.alert("Error", "Failed to resend OTP");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: Verify OTP
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      Alert.alert("Error", "Please enter the OTP");
-      return;
-    }
-
-    if (!/^\d{4}$/.test(otp)) {
-      Alert.alert("Error", "OTP must be a 4-digit number");
-      return;
-    }
+    if (otp.length !== 4) return;
 
     setLoading(true);
     try {
-      // Note: In some implementations, verification happens locally or simply proceeds.
-      // Assuming forgotpassword(email, otp) verifies the OTP with the backend.
-      const success = await forgotpassword(email, otp);
-      if (success) {
-        setStep(3);
-      } else {
-        Alert.alert("Error", "Invalid OTP");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Verification failed");
+      const ok = await forgotpassword(email, otp);
+      if (ok) setStep(3);
+      else Alert.alert("Error", "Invalid OTP");
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 3: Reset Password
   const handleResetPassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
     if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return;
-    }
-    if (newPassword.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
-      return;
+      return Alert.alert("Error", "Passwords do not match");
     }
 
     setLoading(true);
     try {
-      const success = await resetpassword(email, otp, newPassword);
-      if (success) {
-        Alert.alert("Success", "Password reset successfully", [
-          { text: "Login", onPress: () => router.replace("/(auth)/login") },
-        ]);
-      } else {
-        Alert.alert("Error", "Failed to reset password");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong");
+      const ok = await resetpassword(email, otp, newPassword);
+      if (ok) router.replace("/(auth)/login");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStep1 = () => (
-    <View className="space-y-4 w-full">
-      <Text className="text-gray-500 mb-4 text-center">
-        Enter your email address and we'll send you an OTP to reset your
-        password.
-      </Text>
-      <Input
-        placeholder="Email Address"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        label="Email"
-      />
-      <Button onPress={handleSendOtp} disabled={loading} className="mt-4">
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Send OTP</Text>
-        )}
-      </Button>
-    </View>
-  );
+  const handleResend = async () => {
+    if (cooldown > 0) return;
+    await resendOtp(email);
+    setCooldown(30);
+  };
 
-  const renderStep2 = () => (
-    <View className="space-y-4 w-full">
-      <Text className="text-gray-500 mb-4 text-center">
-        Enter the OTP sent to {email}
-      </Text>
-      <Input
-        placeholder="Enter OTP"
-        value={otp}
-        onChangeText={setOtp}
-        keyboardType="number-pad"
-        label="OTP"
-      />
-      <Button onPress={handleVerifyOtp} disabled={loading} className="mt-4">
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Verify OTP</Text>
-        )}
-      </Button>
-
-      <Button
-        onPress={handleResendOtp}
-        disabled={loading || cooldown > 0}
-        variant="ghost"
-        className="mt-2"
-      >
-        <Text className={cooldown > 0 ? "text-gray-400" : "text-blue-600"}>
-          {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
-        </Text>
-      </Button>
-
-      <Button onPress={() => setStep(1)} variant="ghost" className="mt-2">
-        <Text className="text-gray-500">Wrong email? Go back</Text>
-      </Button>
-    </View>
-  );
-
-  const renderStep3 = () => (
-    <View className="space-y-4 w-full">
-      <Text className="text-gray-500 mb-4 text-center">
-        Create a new password
-      </Text>
-      <Input
-        placeholder="New Password"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry={!showPassword}
-        label="New Password"
-        rightElement={
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            {showPassword ? (
-              <EyeOff size={20} color="#6b7280" />
-            ) : (
-              <Eye size={20} color="#6b7280" />
-            )}
-          </TouchableOpacity>
-        }
-      />
-      <Input
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry={!showConfirmPassword}
-        label="Confirm Password"
-        rightElement={
-          <TouchableOpacity
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            {showConfirmPassword ? (
-              <EyeOff size={20} color="#6b7280" />
-            ) : (
-              <Eye size={20} color="#6b7280" />
-            )}
-          </TouchableOpacity>
-        }
-      />
-      <Button onPress={handleResetPassword} disabled={loading} className="mt-4">
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Reset Password</Text>
-        )}
-      </Button>
-    </View>
-  );
+  // ---------------- UI ----------------
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6">
-      <View className="pt-4 mb-6">
-        <Link href="/(auth)/login" asChild>
-          <Button variant="ghost" className="self-start p-0">
-            <ArrowLeft size={24} color="#4b5563" />
-          </Button>
-        </Link>
-      </View>
+    <SafeAreaView className="flex-1 bg-cardBg">
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        {/* ---------- Brand Header ---------- */}
 
-      <View className="items-center mb-8">
-        <Text className="text-2xl font-bold text-blue-600 mb-2">
-          {step === 1
-            ? "Forgot Password"
-            : step === 2
-              ? "Verification"
-              : "Reset Password"}
-        </Text>
-      </View>
+        <View className="items-center mb-8">
+          <View className="flex-row items-center mb-2">
+            <Image
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+              }}
+              className="w-12 h-12 mr-2"
+              resizeMode="contain"
+            />
+            <Text className="text-brand text-4xl font-bold">Gada.chat</Text>
+          </View>
 
-      {step === 1 && renderStep1()}
-      {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
+          <Text className="text-textPrimary text-center">
+            Connect with friends and the world around you
+          </Text>
+        </View>
+
+        {/* ---------- Card ---------- */}
+
+        <View className="w-full border border-borderDefault rounded-xl p-5 bg-cardBg shadow-sm">
+          {/* ================= STEP 1 ================= */}
+
+          {step === 1 && (
+            <>
+              <Text className="text-brand text-2xl font-bold mb-2">
+                Forgot Password
+              </Text>
+
+              <Text className="text-textMuted mb-4">
+                Enter your email to receive OTP
+              </Text>
+
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <Button
+                onPress={handleSendOtp}
+                disabled={loading || !emailValid}
+                className="mt-3"
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-semibold">Send OTP</Text>
+                )}
+              </Button>
+            </>
+          )}
+
+          {/* ================= STEP 2 ================= */}
+
+          {step === 2 && (
+            <>
+              <View className="items-center mb-4">
+                <Text className="text-brand text-2xl font-bold mb-2 text-center">
+                  Forgot Password
+                </Text>
+
+                <Text className="text-textMuted text-center">
+                  Enter the OTP sent to your email
+                </Text>
+              </View>
+
+              <Input label="Email" value={email} editable={false} />
+
+              <View className="flex-row justify-between items-center mt-2">
+                <Text className="text-textPrimary font-medium">
+                  4-Digit OTP
+                </Text>
+
+                {cooldown > 0 && (
+                  <Text className="text-textMuted text-sm">
+                    Resend in {cooldown}s
+                  </Text>
+                )}
+              </View>
+
+              <Input
+                value={otp}
+                onChangeText={(t) => {
+                  const cleaned = t.replace(/[^0-9]/g, "");
+                  setOtp(cleaned.slice(0, 4));
+                }}
+                keyboardType="number-pad"
+                maxLength={4}
+                placeholder="1234"
+              />
+
+              <Button
+                onPress={handleVerifyOtp}
+                disabled={loading || otp.length !== 4}
+                className="mt-3"
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-semibold">Verify OTP</Text>
+                )}
+              </Button>
+
+              {cooldown === 0 && (
+                <TouchableOpacity onPress={handleResend}>
+                  <Text className="text-brand text-center mt-3 font-medium">
+                    Resend OTP
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+
+          {/* ================= STEP 3 ================= */}
+
+          {step === 3 && (
+            <>
+              <Text className="text-brand text-2xl font-bold mb-2">
+                Reset Password
+              </Text>
+
+              <Text className="text-textMuted mb-4">Create a new password</Text>
+
+              <Input
+                label="New Password"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showPassword}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color="#6B7280" />
+                    ) : (
+                      <Eye size={20} color="#6B7280" />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
+
+              <Input
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} color="#6B7280" />
+                    ) : (
+                      <Eye size={20} color="#6B7280" />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
+
+              <Button onPress={handleResetPassword} className="mt-3">
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-semibold">
+                    Reset Password
+                  </Text>
+                )}
+              </Button>
+            </>
+          )}
+
+          {/* ---------- Footer ---------- */}
+
+          <View className="border-t border-borderDefault mt-6 pt-4">
+            <View className="flex-row justify-center">
+              <Text className="text-textMuted mr-1">Back to</Text>
+              <Link href="/(auth)/login" asChild>
+                <Text className="text-brand font-semibold">Login</Text>
+              </Link>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

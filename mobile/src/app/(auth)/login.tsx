@@ -5,6 +5,7 @@ import {
   Alert,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -45,53 +46,77 @@ export default function Login() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6 justify-center">
-      <View className="items-center mb-8">
-        <Text className="text-3xl font-bold text-blue-600 mb-2">
-          Welcome Back
+    <SafeAreaView className="flex-1 bg-cardBg px-6 justify-center">
+      {/* Logo + Title */}
+      <View className="items-center mb-6">
+        <View className="flex-row items-center">
+          <Image
+            source={{
+              uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+            }}
+            className="w-12 h-12 mr-2"
+            resizeMode="contain"
+          />
+
+          <Text className="text-brand text-4xl font-bold">Gada.chat</Text>
+        </View>
+
+        <Text className="text-textPrimary text-base text-center mt-1">
+          Connect with friends and the world around you
         </Text>
-        <Text className="text-gray-500">Sign in to continue</Text>
       </View>
 
-      <View className="space-y-4 w-full">
-        <Input
-          placeholder="your.email@example.com"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          label="Email/Username"
-        />
-        <Input
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          label="Password"
-          rightElement={
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? (
-                <EyeOff size={20} color="#6b7280" />
-              ) : (
-                <Eye size={20} color="#6b7280" />
-              )}
-            </TouchableOpacity>
-          }
-        />
+      {/* Card */}
+      <View className="w-full border border-borderDefault rounded-xl p-5 bg-cardBg shadow-sm">
+        <View className="items-center mb-6">
+          <Text className="text-3xl font-bold text-brand mb-2">
+            Login to Gada
+          </Text>
 
-        <View className="flex-row justify-end">
+          <Text className="text-textMuted text-center">
+            Enter your credentials to access your account
+          </Text>
+        </View>
+
+        <View className="mb-4">
+          <Input
+            placeholder="your.email@example.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            label="Email/Username"
+          />
+        </View>
+
+        <View className="mb-3">
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            label="Password"
+            rightElement={
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff size={20} color="#6B7280" />
+                ) : (
+                  <Eye size={20} color="#6B7280" />
+                )}
+              </TouchableOpacity>
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-end mb-4">
           <Link href="/(auth)/forgot-password" asChild>
-            <Text className="text-blue-600 text-sm font-semibold">
+            <Text className="text-brand text-sm font-semibold">
               Forgot Password?
             </Text>
           </Link>
         </View>
 
-        <Button
-          onPress={handleLogin}
-          className="w-full mt-4"
-          disabled={loading}
-        >
+        <Button onPress={handleLogin} className="w-full" disabled={loading}>
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
@@ -99,10 +124,10 @@ export default function Login() {
           )}
         </Button>
 
-        <View className="flex-row justify-center mt-4 gap-1">
-          <Text className="text-gray-600">Don't have an account?</Text>
+        <View className="flex-row justify-center mt-4">
+          <Text className="text-textMuted mr-1">Don't have an account?</Text>
           <Link href="/(auth)/register" asChild>
-            <Text className="text-blue-600 font-bold">Sign Up</Text>
+            <Text className="text-brand font-bold">Sign Up</Text>
           </Link>
         </View>
       </View>
