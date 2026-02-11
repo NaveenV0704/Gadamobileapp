@@ -38,6 +38,7 @@ export interface Post {
 export interface Comment {
   id: string;
   userId: string;
+  user?: User; // Optional expanded user
   content: string;
   createdAt: string;
 }
