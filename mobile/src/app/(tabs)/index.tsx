@@ -22,16 +22,17 @@ import { API_BASE_URL } from "../../constants/config";
 
 // --- Helpers from Web Feed.tsx ---
 
-/** Normalize backend -> { promotedPost, list } */
-function normalizePosts(raw: any): { promotedPost: any | null; list: any[] } {
-  if (Array.isArray(raw)) return { promotedPost: null, list: raw };
+/** Normalize backend -> { promotedPost, list, nextCursor } */
+function normalizePosts(raw: any): { promotedPost: any | null; list: any[]; nextCursor?: string | null } {
+  if (Array.isArray(raw)) return { promotedPost: null, list: raw, nextCursor: null };
   if (raw && typeof raw === "object") {
     return {
       promotedPost: raw.promoted ?? null,
       list: Array.isArray(raw.items) ? raw.items : [],
+      nextCursor: raw.nextCursor ?? null,
     };
   }
-  return { promotedPost: null, list: [] };
+  return { promotedPost: null, list: [], nextCursor: null };
 }
 
 /** Extract numeric post id from row */
@@ -53,7 +54,7 @@ export default function Feed() {
   >({});
 
   const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState<number | string>(0);
   const LIMIT = 10;
 
   const authHeader = useAuthHeader(accessToken);
@@ -80,13 +81,14 @@ export default function Feed() {
           withPromoted: isRefresh ? 1 : 0, // Only fetch promoted on first page
         });
 
-        const { promotedPost: newPromoted, list: newItems } =
+        const { promotedPost: newPromoted, list: newItems, nextCursor } =
           normalizePosts(data);
 
         if (isRefresh) {
           setRawPosts({ promoted: newPromoted, items: newItems });
-          setOffset(LIMIT);
-          setHasMore(newItems.length >= LIMIT);
+          // If backend returns nextCursor, use it. Otherwise, assume count-based and reset to LIMIT.
+          setOffset(nextCursor || LIMIT);
+          setHasMore(newItems.length >= LIMIT || !!nextCursor);
         } else {
           setRawPosts((prev: any) => {
             const prevItems = prev?.items || [];
@@ -103,8 +105,15 @@ export default function Feed() {
               items: [...prevItems, ...uniqueNewItems],
             };
           });
-          setOffset((prev) => prev + LIMIT);
-          setHasMore(newItems.length >= LIMIT);
+
+          if (nextCursor) {
+            setOffset(nextCursor);
+          } else {
+            // Fallback for count-based pagination if no cursor
+            setOffset((prev) => (typeof prev === "number" ? prev + LIMIT : prev));
+          }
+
+          setHasMore(newItems.length > 0 && (newItems.length >= LIMIT || !!nextCursor));
         }
       } catch (error) {
         console.error("Failed to load posts", error);

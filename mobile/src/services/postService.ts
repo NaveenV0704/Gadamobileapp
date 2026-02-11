@@ -76,7 +76,8 @@ export async function fetchPosts(
   headers: Record<string, string>,
   params: {
     withPromoted?: number;
-    offset?: number;
+    offset?: number | string;
+    
     limit?: number;
   } = {},
 ): Promise<any> {
@@ -113,3 +114,32 @@ export async function fetchPosts(
   if (Array.isArray(json)) return json;
   return json;
 }
+
+export async function reactToPost(
+  postId: string | number,
+  reaction: string,
+  headers: Record<string, string>,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/react`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ reaction }),
+  });
+  if (!response.ok) throw new Error("Failed to react");
+  return response.json();
+}
+
+export async function commentOnPost(
+  postId: string | number,
+  content: string,
+  headers: Record<string, string>,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/comment`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) throw new Error("Failed to comment");
+  return response.json();
+}
+
