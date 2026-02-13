@@ -23,12 +23,23 @@ import { API_BASE_URL } from "../../constants/config";
 // --- Helpers from Web Feed.tsx ---
 
 /** Normalize backend -> { promotedPost, list, nextCursor } */
-function normalizePosts(raw: any): { promotedPost: any | null; list: any[]; nextCursor?: string | null } {
-  if (Array.isArray(raw)) return { promotedPost: null, list: raw, nextCursor: null };
+function normalizePosts(raw: any): {
+  promotedPost: any | null;
+  list: any[];
+  nextCursor?: string | null;
+} {
+  if (Array.isArray(raw))
+    return { promotedPost: null, list: raw, nextCursor: null };
   if (raw && typeof raw === "object") {
+    // Some endpoints return data in .data, others in .items
+    const list = Array.isArray(raw.items)
+      ? raw.items
+      : Array.isArray(raw.data)
+        ? raw.data
+        : [];
     return {
       promotedPost: raw.promoted ?? null,
-      list: Array.isArray(raw.items) ? raw.items : [],
+      list: list,
       nextCursor: raw.nextCursor ?? null,
     };
   }
@@ -55,7 +66,7 @@ export default function Feed() {
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState<number | string>(0);
-  const LIMIT = 10;
+  const LIMIT = 20;
 
   const authHeader = useAuthHeader(accessToken);
   const lastIdsStrRef = useRef<string>("");
@@ -81,13 +92,24 @@ export default function Feed() {
           withPromoted: isRefresh ? 1 : 0, // Only fetch promoted on first page
         });
 
-        const { promotedPost: newPromoted, list: newItems, nextCursor } =
-          normalizePosts(data);
+        const {
+          promotedPost: newPromoted,
+          list: newItems,
+          nextCursor,
+        } = normalizePosts(data);
 
         if (isRefresh) {
           setRawPosts({ promoted: newPromoted, items: newItems });
-          // If backend returns nextCursor, use it. Otherwise, assume count-based and reset to LIMIT.
-          setOffset(nextCursor || LIMIT);
+          // If backend returns nextCursor, use it.
+          // Otherwise, if we have items, use the last item's ID as offset for next page.
+          if (nextCursor) {
+            setOffset(nextCursor);
+          } else if (newItems.length > 0) {
+            const lastId = getPostId(newItems[newItems.length - 1]);
+            if (lastId) setOffset(lastId);
+          } else {
+            setOffset(0);
+          }
           setHasMore(newItems.length >= LIMIT || !!nextCursor);
         } else {
           setRawPosts((prev: any) => {
@@ -108,12 +130,14 @@ export default function Feed() {
 
           if (nextCursor) {
             setOffset(nextCursor);
-          } else {
-            // Fallback for count-based pagination if no cursor
-            setOffset((prev) => (typeof prev === "number" ? prev + LIMIT : prev));
+          } else if (newItems.length > 0) {
+            const lastId = getPostId(newItems[newItems.length - 1]);
+            if (lastId) setOffset(lastId);
           }
 
-          setHasMore(newItems.length > 0 && (newItems.length >= LIMIT || !!nextCursor));
+          setHasMore(
+            newItems.length > 0 && (newItems.length >= LIMIT || !!nextCursor),
+          );
         }
       } catch (error) {
         console.error("Failed to load posts", error);

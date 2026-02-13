@@ -12,8 +12,8 @@ import { Avatar } from "./ui/Avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageCircle, Share2, Send } from "lucide-react-native";
 import { API_BASE_URL } from "../constants/config";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Video, ResizeMode } from "expo-av";
+import { useState, useEffect, useCallback } from "react";
+import { PostVideo } from "./PostVideo";
 import { useAuth } from "../contexts/AuthContext";
 import { useAuthHeader } from "../hooks/useAuthHeader";
 import { reactToPost, commentOnPost } from "../services/postService";
@@ -100,8 +100,6 @@ export function PostCard({ post }: PostCardProps) {
   const [myReaction, setMyReaction] = useState<string | null>(
     post.myReaction || null,
   );
-
-  const videoRef = useRef<Video>(null);
 
   const isLiked = user ? likes.includes(user.id) : false;
 
@@ -239,16 +237,9 @@ export function PostCard({ post }: PostCardProps) {
         {/* Videos */}
         {post.videos &&
           post.videos.map((vid, idx) => (
-            <Video
+            <PostVideo
               key={`vid-${idx}`}
-              ref={videoRef}
-              source={{
-                uri: vid.startsWith("http") ? vid : `${API_BASE_URL}${vid}`,
-              }}
-              className="w-full h-64 bg-black"
-              useNativeControls
-              resizeMode={ResizeMode.CONTAIN}
-              isLooping
+              uri={vid.startsWith("http") ? vid : `${API_BASE_URL}${vid}`}
             />
           ))}
       </View>

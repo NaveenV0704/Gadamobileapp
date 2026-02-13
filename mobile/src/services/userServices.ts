@@ -56,12 +56,28 @@ export interface UserProfile {
 
 // Helpers
 async function handleResponse<T>(response: Response): Promise<T> {
-  const payload: T | ErrorResponse = await response.json();
-  if (!response.ok) {
-    const errMsg = (payload as ErrorResponse).message ?? "Something went wrong";
-    throw new Error(errMsg);
+  const text = await response.text();
+  try {
+    const payload = JSON.parse(text);
+    if (!response.ok) {
+      const errMsg =
+        (payload as ErrorResponse).message ?? "Something went wrong";
+      throw new Error(errMsg);
+    }
+    
+    // Check if the response is wrapped in a 'data' field
+    if (payload && typeof payload === 'object' && 'data' in payload && payload.data !== null) {
+      return payload.data as T;
+    }
+    
+    return payload as T;
+  } catch (e) {
+    if (response.status === 524) {
+      throw new Error("Server Timeout (Error 524): The server is taking too long to respond. Please try again later.");
+    }
+    if (!response.ok) throw new Error(text || "Something went wrong");
+    throw new Error("Invalid JSON response: " + text);
   }
-  return payload as T;
 }
 
 // API Methods
@@ -71,7 +87,6 @@ export async function signInUser(
 ): Promise<AuthPayload> {
   console.log("Attempting login...");
   console.log("URL:", `${API_BASE_URL}/api/signin`);
-  console.log("Credentials:", JSON.stringify(credentials, null, 2));
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/signin`, {
@@ -81,37 +96,10 @@ export async function signInUser(
     });
 
     console.log("Response Status:", response.status);
-    const text = await response.text(); // Get raw text first for debugging
-    console.log("Response Body:", text);
-
-    try {
-      const payload = JSON.parse(text); // Try to parse as JSON
-      if (!response.ok) {
-        const errMsg =
-          (payload as ErrorResponse).message ?? "Something went wrong";
-        throw new Error(errMsg);
-      }
-      return payload as AuthPayload;
-    } catch (e) {
-      // If parsing fails, throw error with raw text
-      if (!response.ok) throw new Error(text || "Server error");
-      throw new Error("Invalid JSON response: " + text);
-    }
+    return handleResponse<AuthPayload>(response);
   } catch (error: any) {
     console.error("Login Error:", error);
-
-    let message = "Login failed";
-
-    try {
-      // if message is JSON string → extract message field
-      const parsed = JSON.parse(error.message);
-      message = parsed.message || message;
-    } catch {
-      // if not JSON → use normal message
-      message = error.message || message;
-    }
-
-    throw new Error(message);
+    throw error;
   }
 }
 
