@@ -77,7 +77,7 @@ export async function fetchPosts(
   params: {
     withPromoted?: number;
     offset?: number | string;
-    
+
     limit?: number;
   } = {},
 ): Promise<any> {
@@ -102,6 +102,11 @@ export async function fetchPosts(
   console.log(`[PostService] Response status: ${response.status}`);
 
   if (!response.ok) {
+    if (response.status === 524) {
+      throw new Error(
+        "Server Timeout (Error 524): The server is taking too long to respond. Please try again later.",
+      );
+    }
     const text = await response.text();
     console.error("[PostService] Fetch posts failed body:", text);
     throw new Error(`Failed to fetch posts: ${response.status}`);
@@ -110,6 +115,14 @@ export async function fetchPosts(
   const json = await response.json();
 
   // Adjust based on actual API response structure
+  // If payload has a data property, return it (consistent with other API endpoints)
+  if (json && typeof json === "object" && "data" in json && json.data) {
+    // If it's the full structure { promoted, data, nextCursor }, we need to keep it
+    // for normalizePosts in index.tsx. But index.tsx expects 'items' or 'data'.
+    // If we return the whole object, normalizePosts will handle it.
+    return json;
+  }
+
   // Return full object if it has structure (promoted, items), otherwise array
   if (Array.isArray(json)) return json;
   return json;
@@ -142,4 +155,3 @@ export async function commentOnPost(
   if (!response.ok) throw new Error("Failed to comment");
   return response.json();
 }
-
