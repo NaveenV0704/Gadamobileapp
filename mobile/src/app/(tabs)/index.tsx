@@ -9,6 +9,7 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { PostCard } from "../../components/PostCard";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -54,7 +55,8 @@ function getPostId(p: any): number | null {
 }
 
 export default function Feed() {
-  const { user, accessToken } = useAuth();
+  const router = useRouter();
+  const { user, accessToken, logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [rawPosts, setRawPosts] = useState<any>([]); // Store raw response
   const [loading, setLoading] = useState(true);
@@ -140,7 +142,17 @@ export default function Feed() {
           );
         }
       } catch (error) {
-        console.error("Failed to load posts", error);
+        const msg = String(
+          (error as any)?.message ?? (error as any) ?? "Unknown error",
+        );
+        if (msg.includes("401") || msg.toLowerCase().includes("unauthorized")) {
+          await logout();
+          Alert.alert("Session expired", "Please sign in again.", [
+            { text: "OK", onPress: () => router.replace("/(auth)/login") },
+          ]);
+        } else {
+          console.error("Failed to load posts", error);
+        }
       } finally {
         setLoading(false);
         setRefreshing(false);
