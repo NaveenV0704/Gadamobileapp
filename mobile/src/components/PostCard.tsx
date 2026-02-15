@@ -12,12 +12,13 @@ import { Avatar } from "./ui/Avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageCircle, Share2, Send } from "lucide-react-native";
 import { API_BASE_URL } from "../constants/config";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { PostVideo } from "./PostVideo";
 import { useAuth } from "../contexts/AuthContext";
 import { useAuthHeader } from "../hooks/useAuthHeader";
 import { reactToPost, commentOnPost } from "../services/postService";
 import ReactionPicker from "./ReactionPicker";
+import { stripUploads } from "../constants/url";
 
 interface PostCardProps {
   post: Post;
@@ -81,6 +82,53 @@ const CollapsibleText = ({ text }: { text: string }) => {
   );
 };
 
+const buildUrl = (path?: string) => {
+  if (!path) return "";
+
+  if (path.startsWith("http")) return path;
+
+  const clean = stripUploads(path).replace(/^\/+/, "");
+
+  return `${API_BASE_URL}/uploads/${clean}`;
+};
+
+const PostImage = ({ uri, index }: { uri: string; index: number }) => {
+  const [loading, setLoading] = useState(true);
+  const sourceUri = buildUrl(uri);
+
+  return (
+    <View className="w-full h-64 bg-gray-200 overflow-hidden rounded-lg items-center justify-center">
+      <Image
+        source={{ uri: sourceUri }}
+        className="w-full h-64"
+        resizeMode="cover"
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={(e) => {
+          console.log("Image failed:", sourceUri);
+          setLoading(false);
+        }}
+      />
+      {loading && (
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(229,231,235,0.8)",
+          }}
+        >
+          <ActivityIndicator color="#6b7280" />
+        </View>
+      )}
+    </View>
+  );
+};
+
 export function PostCard({ post }: PostCardProps) {
   const { user, accessToken } = useAuth();
   const headers = useAuthHeader(accessToken);
@@ -89,6 +137,8 @@ export function PostCard({ post }: PostCardProps) {
     ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
     : "just now";
   const isLive = post.live?.isLive;
+
+  console.log("Post from API", post);
 
   // State
   const [likes, setLikes] = useState<string[]>(post.likes || []);
@@ -100,6 +150,50 @@ export function PostCard({ post }: PostCardProps) {
   const [myReaction, setMyReaction] = useState<string | null>(
     post.myReaction || null,
   );
+
+  const { mediaImages, mediaVideos } = useMemo(() => {
+    const images: string[] = [];
+    const videos: string[] = [];
+
+    const addMedia = (url: any, type?: string) => {
+      if (!url || typeof url !== "string") return;
+
+      if (type === "video") videos.push(url);
+      else images.push(url);
+    };
+
+    const rawMedia = (post as any).media;
+
+    if (Array.isArray((post as any).images)) {
+      (post as any).images.forEach((u: any) => addMedia(u, "image"));
+    }
+
+    if (Array.isArray((post as any).videos)) {
+      (post as any).videos.forEach((u: any) => addMedia(u, "video"));
+    }
+
+    if (Array.isArray(rawMedia)) {
+      rawMedia.forEach((m: any) => addMedia(m?.url, m?.type));
+    } else if (rawMedia && typeof rawMedia === "object") {
+      if (Array.isArray(rawMedia.images)) {
+        rawMedia.images.forEach((m: any) =>
+          addMedia(typeof m === "string" ? m : m?.url, "image"),
+        );
+      }
+
+      if (Array.isArray(rawMedia.videos)) {
+        rawMedia.videos.forEach((m: any) =>
+          addMedia(typeof m === "string" ? m : m?.url, "video"),
+        );
+      }
+
+      if (rawMedia.url) {
+        addMedia(rawMedia.url, rawMedia.type);
+      }
+    }
+
+    return { mediaImages: images, mediaVideos: videos };
+  }, [post]);
 
   const isLiked = user ? likes.includes(user.id) : false;
 
@@ -198,7 +292,8 @@ export function PostCard({ post }: PostCardProps) {
     <View className="bg-white p-4 mb-2">
       {/* Header */}
       <View className="flex-row items-center mb-3">
-        <Avatar source={author.profileImage} size="md" />
+        <Avatar source={buildUrl(author?.profileImage)} />
+
         <View className="ml-3 flex-1">
           <View className="flex-row items-center">
             <Text className="font-semibold text-gray-900">
@@ -222,25 +317,15 @@ export function PostCard({ post }: PostCardProps) {
       {/* Media (Images & Videos) */}
       <View className="mb-3 rounded-lg overflow-hidden gap-y-2">
         {/* Images */}
-        {post.images &&
-          post.images.map((img, idx) => (
-            <Image
-              key={`img-${idx}`}
-              source={{
-                uri: img.startsWith("http") ? img : `${API_BASE_URL}${img}`,
-              }}
-              className="w-full h-64 bg-gray-100"
-              resizeMode="cover"
-            />
+        {mediaImages.length > 0 &&
+          mediaImages.map((img, idx) => (
+            <PostImage key={`img-${idx}`} uri={img} index={idx} />
           ))}
 
         {/* Videos */}
-        {post.videos &&
-          post.videos.map((vid, idx) => (
-            <PostVideo
-              key={`vid-${idx}`}
-              uri={vid.startsWith("http") ? vid : `${API_BASE_URL}${vid}`}
-            />
+        {mediaVideos.length > 0 &&
+          mediaVideos.map((vid, idx) => (
+            <PostVideo key={`vid-${idx}`} uri={buildUrl(vid)} />
           ))}
       </View>
 
@@ -316,7 +401,8 @@ export function PostCard({ post }: PostCardProps) {
         <View className="mt-4 border-t border-gray-100 pt-3">
           {comments.map((comment, idx) => (
             <View key={comment.id || idx} className="mb-3 flex-row">
-              <Avatar source={comment.user?.profileImage || ""} size="sm" />
+              <Avatar source={buildUrl(comment.user?.profileImage)} size="sm" />
+
               <View className="ml-2 bg-gray-100 p-2 rounded-lg flex-1">
                 <Text className="font-bold text-xs">
                   {comment.user
