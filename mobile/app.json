@@ -33,7 +33,8 @@
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": true
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }

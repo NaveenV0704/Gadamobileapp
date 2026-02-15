@@ -77,7 +77,6 @@ export async function fetchPosts(
   params: {
     withPromoted?: number;
     offset?: number | string;
-
     limit?: number;
   } = {},
 ): Promise<any> {
@@ -126,6 +125,60 @@ export async function fetchPosts(
   // Return full object if it has structure (promoted, items), otherwise array
   if (Array.isArray(json)) return json;
   return json;
+}
+
+export async function fetchProfilePosts(
+  profileId: string | number,
+  headers: Record<string, string>,
+  params: { limit?: number; offset?: number | string } = {},
+): Promise<any> {
+  const url = new URL(`${API_BASE_URL}/api/profile/${profileId}/posts`);
+  if (params.limit != null) {
+    url.searchParams.set("limit", String(params.limit));
+  }
+  if (params.offset != null) {
+    url.searchParams.set("offset", String(params.offset));
+  }
+
+  const requestHeaders = { ...headers };
+  delete requestHeaders["Content-Type"];
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: requestHeaders,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[PostService] Fetch profile posts failed:", text);
+    throw new Error(`Failed to fetch profile posts: ${response.status}`);
+  }
+
+  const json = await response.json();
+  return json;
+}
+
+export async function fetchProfileSummary(
+  profileId: string | number,
+  headers: Record<string, string>,
+): Promise<any> {
+  const url = `${API_BASE_URL}/api/profile/${profileId}/summary`;
+
+  const requestHeaders = { ...headers };
+  delete requestHeaders["Content-Type"];
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: requestHeaders,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[PostService] Fetch profile summary failed:", text);
+    throw new Error(`Failed to fetch profile summary: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 export async function reactToPost(
