@@ -64,16 +64,23 @@ async function handleResponse<T>(response: Response): Promise<T> {
         (payload as ErrorResponse).message ?? "Something went wrong";
       throw new Error(errMsg);
     }
-    
+
     // Check if the response is wrapped in a 'data' field
-    if (payload && typeof payload === 'object' && 'data' in payload && payload.data !== null) {
+    if (
+      payload &&
+      typeof payload === "object" &&
+      "data" in payload &&
+      payload.data !== null
+    ) {
       return payload.data as T;
     }
-    
+
     return payload as T;
   } catch (e) {
     if (response.status === 524) {
-      throw new Error("Server Timeout (Error 524): The server is taking too long to respond. Please try again later.");
+      throw new Error(
+        "Server Timeout (Error 524): The server is taking too long to respond. Please try again later.",
+      );
     }
     if (!response.ok) throw new Error(text || "Something went wrong");
     throw new Error("Invalid JSON response: " + text);
@@ -219,4 +226,65 @@ export async function fetchUserProfile(id: string): Promise<UserProfile> {
     throw new Error(err.error || "Failed to fetch user profile");
   }
   return res.json();
+}
+
+export async function fetchMyProfile(
+  headers: Record<string, string>,
+): Promise<Partial<EditProfilePayload> & Record<string, any>> {
+  const requestHeaders = { ...headers };
+  delete requestHeaders["Content-Type"];
+
+  const res = await fetch(`${API_BASE_URL}/api/profile/me`, {
+    method: "GET",
+    headers: requestHeaders,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to fetch profile");
+  }
+
+  return res.json();
+}
+
+export interface EditProfilePayload {
+  firstName: string;
+  lastName: string;
+  gender: string;
+  birthdate: string;
+  bio: string;
+  currentCity: string;
+  hometown: string;
+  privacyChat: string;
+  privacyPhotos: string;
+  privacyWall: string;
+  socialFacebook: string;
+  socialInstagram: string;
+  socialLinkedin: string;
+  socialTwitter: string;
+  socialYoutube: string;
+  website: string;
+  workPlace: string;
+  workTitle: string;
+}
+
+export async function updateProfileDetails(
+  payload: EditProfilePayload,
+  headers: Record<string, string>,
+): Promise<void> {
+  const requestHeaders = {
+    ...headers,
+    "Content-Type": "application/json",
+  };
+
+  const res = await fetch(`${API_BASE_URL}/api/profile`, {
+    method: "PUT",
+    headers: requestHeaders,
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to update profile");
+  }
 }

@@ -19,7 +19,14 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import Constants from "expo-constants";
 import { Story, StoryItem } from "../types";
 import { Avatar } from "./ui/Avatar";
-import { X, Heart, Send, Users } from "lucide-react-native";
+import {
+  X,
+  Heart,
+  Send,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react-native";
 import { API_BASE_URL } from "../constants/config";
 import { stripUploads } from "../lib/url";
 import {
@@ -379,19 +386,25 @@ export default function StoryViewer({
                   </View>
                 ) : textStoryData ? (
                   <View
-                    className="flex-1 w-full h-full items-center justify-center px-10"
-                    style={{ backgroundColor: textStoryData.bg }}
+                    style={{
+                      flex: 1,
+                      width: width,
+                      height: height,
+                      backgroundColor: textStoryData.bg,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      paddingHorizontal: 30,
+                    }}
                   >
-                    <View
-                      className="w-full"
-                      style={{
-                        marginTop: Constants.statusBarHeight + 80,
-                        marginBottom: 150,
-                      }}
-                    >
+                    <View style={{ maxWidth: width * 0.85 }}>
                       <Text
-                        className="text-4xl font-bold text-center leading-tight"
-                        style={{ color: textStoryData.color }}
+                        style={{
+                          color: textStoryData.color,
+                          fontSize: 28,
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          lineHeight: 36,
+                        }}
                       >
                         {textStoryData.text}
                       </Text>
@@ -424,27 +437,26 @@ export default function StoryViewer({
               {renderOverlays()}
             </View>
 
-            {/* Touch Zones - Transparent Overlay */}
             <View
-              className="absolute inset-0 flex-row z-10"
+              className="absolute inset-y-0 left-0 right-0 z-10 flex-row items-center justify-between px-2"
               pointerEvents="box-none"
             >
-              <Pressable
-                className="flex-1 h-full"
+              <TouchableOpacity
                 onPress={handlePrev}
-                style={{ backgroundColor: "transparent" }}
-              />
-              <Pressable
-                className="flex-[2] h-full"
                 onPressIn={() => setIsPaused(true)}
                 onPressOut={() => setIsPaused(false)}
-                style={{ backgroundColor: "transparent" }}
-              />
-              <Pressable
-                className="flex-1 h-full"
+                hitSlop={{ left: 20, right: 40, top: 40, bottom: 40 }}
+              >
+                <ChevronLeft color="white" size={32} />
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={handleNext}
-                style={{ backgroundColor: "transparent" }}
-              />
+                onPressIn={() => setIsPaused(true)}
+                onPressOut={() => setIsPaused(false)}
+                hitSlop={{ left: 40, right: 20, top: 40, bottom: 40 }}
+              >
+                <ChevronRight color="white" size={32} />
+              </TouchableOpacity>
             </View>
 
             {/* Top UI Layer - Progress and Header */}

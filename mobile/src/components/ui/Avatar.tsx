@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { View, Image } from "react-native";
 import { cn } from "../../lib/utils";
 import { API_BASE_URL } from "../../constants/config";
@@ -16,18 +17,36 @@ const sizeClasses = {
   xl: "w-24 h-24",
 };
 
-export function Avatar({ source, fallback = "/uploads//profile/defaultavatar.png", size = "md", className }: AvatarProps) {
-  // Handle relative paths by prepending API_BASE_URL if needed
-  const imageSource = source 
-    ? (source.startsWith("http") ? source : `${API_BASE_URL}${source}`)
-    : (fallback.startsWith("http") ? fallback : `${API_BASE_URL}${fallback}`);
+export function Avatar({
+  source,
+  fallback = "/uploads//profile/defaultavatar.png",
+  size = "md",
+  className,
+}: AvatarProps) {
+  const [useFallback, setUseFallback] = useState(false);
+
+  const raw = useFallback ? fallback : source || fallback;
+
+  const imageSource =
+    raw && raw.startsWith("http")
+      ? raw
+      : raw?.startsWith("/")
+        ? `${API_BASE_URL}${raw}`
+        : `${API_BASE_URL}/${raw || ""}`;
 
   return (
-    <View className={cn("rounded-full overflow-hidden bg-gray-200 border border-gray-100", sizeClasses[size], className)}>
+    <View
+      className={cn(
+        "rounded-full overflow-hidden bg-gray-200 border border-gray-100",
+        sizeClasses[size],
+        className,
+      )}
+    >
       <Image
         source={{ uri: imageSource }}
         className="w-full h-full"
         resizeMode="cover"
+        onError={() => setUseFallback(true)}
       />
     </View>
   );
