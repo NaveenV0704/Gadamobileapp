@@ -30,7 +30,22 @@ import {
   uploadAvatar,
   fetchMyProfile,
 } from "../../services/userServices";
-import { Camera } from "lucide-react-native";
+import {
+  Camera,
+  Menu,
+  User as UserIcon,
+  Coins,
+  Shield,
+  Wallet as WalletIcon,
+  LogOut,
+  Home,
+  Users,
+  Bookmark,
+  Clock,
+  MessageCircle,
+  FileText,
+  Calendar as CalendarIcon,
+} from "lucide-react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -76,6 +91,16 @@ export default function Profile() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const points =
+    // @ts-ignore
+    (user?.points as number | undefined) ?? 0;
+  const wallet = user?.walletBalance ?? "0";
+  const isAdmin = Array.isArray(user?.roles)
+    ? user?.roles.includes("admin")
+    : // @ts-ignore
+      user?.roles === "admin";
 
   const loadProfilePosts = useCallback(async () => {
     if (!user?.id || !accessToken) return;
@@ -283,6 +308,27 @@ export default function Profile() {
         keyExtractor={(item, index) => String(item.id || index)}
         ListHeaderComponent={
           <ScrollView className="flex-1">
+            <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+              <View className="flex-row items-center">
+                <Image
+                  source={{
+                    uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+                  }}
+                  className="w-8 h-8 mr-2"
+                  resizeMode="contain"
+                />
+                <Text className="text-[#1877F2] text-xl font-bold">
+                  Gada.chat
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setMenuVisible(true)}
+                className="p-2"
+              >
+                <Menu size={22} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
             {/* Cover Image */}
             <View className="h-40 bg-gray-200 w-full relative">
               {coverPath ? (
@@ -334,15 +380,27 @@ export default function Profile() {
                 </View>
               </View>
 
-              <View className="mt-3">
-                <Text className="text-2xl font-bold">{fullName}</Text>
-                <Text className="text-gray-500">@{username}</Text>
-              </View>
+              <View className="mt-3 flex-row justify-between items-start">
+                {/* LEFT SIDE */}
+                <View>
+                  <Text className="text-2xl font-bold">{fullName}</Text>
+                  <Text className="text-gray-500">@{username}</Text>
 
-              <View className="mt-2">
-                <Text className="text-gray-600 text-sm">
-                  {friendsCount} friends · {postsCount} posts
-                </Text>
+                  <View className="mt-2">
+                    <Text className="text-gray-600 text-sm">
+                      {friendsCount} friends · {postsCount} posts
+                    </Text>
+                  </View>
+                </View>
+
+                {/* RIGHT SIDE BUTTON */}
+                <View>
+                  <Button
+                    variant="outline"
+                    label="Edit Profile"
+                    onPress={openEditProfile}
+                  />
+                </View>
               </View>
 
               <View className="mt-4 border-b border-gray-200">
@@ -437,19 +495,6 @@ export default function Profile() {
                   )}
                 </View>
               )}
-            </View>
-
-            <View className="px-4 mt-4 space-y-3">
-              <Button
-                variant="outline"
-                label="Edit Profile"
-                onPress={openEditProfile}
-              />
-              <Button
-                variant="destructive"
-                label="Logout"
-                onPress={handleLogout}
-              />
             </View>
           </ScrollView>
         }
@@ -805,6 +850,170 @@ export default function Profile() {
               />
             </View>
           </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={menuVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1"
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
+          style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 70,
+            minWidth: 220,
+          }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+        >
+          {/* Home */}
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/home");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Home size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Home</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          {/* Profile */}
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <UserIcon size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Profile</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          {/* People */}
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/friends");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Users size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">People</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          {/* Saved */}
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/saved");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Bookmark size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Saved</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          {/* Memories */}
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/memories");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Clock size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Memories</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/points");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Coins size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Points</Text>
+            </View>
+            <Text className="text-blue-600 font-semibold">{points}</Text>
+          </TouchableOpacity>
+
+          {isAdmin ? (
+            <>
+              <View className="h-px bg-gray-100" />
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  // router.push("/(tabs)/admin");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Shield size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Admin panel</Text>
+                </View>
+              </TouchableOpacity>
+            </>
+          ) : null}
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/wallet");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <WalletIcon size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Wallet</Text>
+            </View>
+            <Text className="text-blue-600 font-semibold">₦{wallet}</Text>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={async () => {
+              setMenuVisible(false);
+              await handleLogout();
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <LogOut size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Logout</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </Modal>
     </SafeAreaView>
