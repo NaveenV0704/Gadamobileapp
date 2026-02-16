@@ -5,6 +5,8 @@ import React, {
   useState,
   ReactNode,
 } from "react";
+import { Alert } from "react-native";
+import { useRouter } from "expo-router";
 import { Story } from "../types";
 import { fetchStories } from "../services/storyService";
 import { useAuth } from "./AuthContext";
@@ -19,7 +21,8 @@ interface StoryContextType {
 const StoryContext = createContext<StoryContextType | undefined>(undefined);
 
 export function StoryProvider({ children }: { children: ReactNode }) {
-  const { accessToken } = useAuth();
+  const router = useRouter();
+  const { accessToken, logout } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,7 +35,17 @@ export function StoryProvider({ children }: { children: ReactNode }) {
       const data = await fetchStories(authHeader);
       setStories(data);
     } catch (error) {
-      console.error("Failed to load stories", error);
+      const msg = String(
+        (error as any)?.message ?? (error as any) ?? "Unknown error",
+      );
+      if (msg.includes("401") || msg.toLowerCase().includes("unauthorized")) {
+        await logout();
+        Alert.alert("Session expired", "Please sign in again.", [
+          { text: "OK", onPress: () => router.replace("/(auth)/login") },
+        ]);
+      } else {
+        console.error("Failed to load stories", error);
+      }
     } finally {
       setIsLoading(false);
     }
