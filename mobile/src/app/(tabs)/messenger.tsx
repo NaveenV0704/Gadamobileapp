@@ -5,11 +5,23 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Image,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useAuthHeader } from "../../hooks/useAuthHeader";
+import { useAuthHeader, useAuthHeaderupload } from "../../hooks/useAuthHeader";
+import {
+  Phone,
+  Video,
+  PhoneOff,
+  Mic,
+  MicOff,
+  VideoOff,
+  Camera,
+} from "lucide-react-native";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { API_BASE_URL } from "../../constants/config";
 
 type Peer = {
@@ -39,6 +51,7 @@ type Message = {
 export default function Messenger() {
   const { accessToken, user } = useAuth();
   const headers = useAuthHeader(accessToken);
+  const uploadHeaders = useAuthHeaderupload(accessToken);
 
   const [conversations, setConversations] = useState<Conversation[] | null>(
     null,
@@ -56,6 +69,17 @@ export default function Messenger() {
 
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const typingRef = useRef(false);
+  const typingTimeoutRef = useRef<number | null>(null);
+
+  const [callKind, setCallKind] = useState<"audio" | "video">("audio");
+  const [callId, setCallId] = useState<number | null>(null);
+  const [callBusy, setCallBusy] = useState(false);
+  const [callVisible, setCallVisible] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [camOff, setCamOff] = useState(false);
+  const [cameraType, setCameraType] = useState<CameraType>("front");
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -119,8 +143,15 @@ export default function Messenger() {
         const data = await res.json();
         const items: Message[] = Array.isArray(data?.items) ? data.items : [];
         setMessages((prev) => (cursor ? [...(prev || []), ...items] : items));
-        setMsgCursor(data?.nextCursor ?? null);
-        setMsgDone(!data?.nextCursor);
+
+        const next = data?.nextCursor ?? null;
+        if (!next || items.length === 0) {
+          setMsgCursor(null);
+          setMsgDone(true);
+        } else {
+          setMsgCursor(next);
+          setMsgDone(false);
+        }
       } catch (e) {
         setMsgError("Failed to load messages");
       } finally {
@@ -129,6 +160,55 @@ export default function Messenger() {
     },
     [accessToken, headers, msgLoading],
   );
+
+  const extractMeta = (rawText: string) => {
+    if (!rawText?.startsWith("::meta::")) return null;
+
+    const endIndex = rawText.indexOf("::/meta::");
+    if (endIndex === -1) return null;
+
+    const jsonPart = rawText.replace("::meta::", "").split("::/meta::")[0];
+
+    try {
+      return JSON.parse(jsonPart);
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!activeId) return;
+
+    fetch(`${API_BASE_URL}/api/messenger/conversations/${activeId}/seen`, {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify({}),
+    }).catch(() => {});
+  }, [activeId, headers]);
+
+  const sendTyping = async (typing: boolean) => {
+    if (!activeId) return;
+    typingRef.current = typing;
+    try {
+      await fetch(
+        `${API_BASE_URL}/api/messenger/conversations/${activeId}/typing`,
+        {
+          method: "POST",
+          headers,
+          credentials: "include",
+          body: JSON.stringify({ typing }),
+        },
+      );
+    } catch {}
+  };
+
+  const extractPlainText = (rawText: string) => {
+    if (!rawText?.startsWith("::meta::")) return rawText;
+
+    const afterMeta = rawText.split("::/meta::")[1] || "";
+    return afterMeta.trim();
+  };
 
   const handleSelectConversation = (c: Conversation) => {
     if (c.conversationId === activeId) return;
@@ -151,7 +231,7 @@ export default function Messenger() {
         `${API_BASE_URL}/api/messenger/conversations/${activeId}/messages`,
         {
           method: "POST",
-          headers,
+          headers: uploadHeaders,
           credentials: "include",
           body: fd as any,
         },
@@ -169,6 +249,34 @@ export default function Messenger() {
   };
 
   useEffect(() => {
+    if (!activeId) return;
+    if (!text.trim()) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      if (typingRef.current) {
+        void sendTyping(false);
+      }
+      return;
+    }
+
+    if (!typingRef.current) {
+      void sendTyping(true);
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      if (typingRef.current) {
+        void sendTyping(false);
+      }
+    }, 900) as unknown as number;
+  }, [text, activeId]);
+
+  useEffect(() => {
     void fetchConversationsApi();
   }, [fetchConversationsApi]);
 
@@ -183,6 +291,74 @@ export default function Messenger() {
     () => conversations?.find((c) => c.conversationId === activeId) || null,
     [conversations, activeId],
   );
+
+  const handleStartCall = async (kind: "audio" | "video") => {
+    if (!activeConversation || !accessToken) return;
+    if (callBusy) return;
+    try {
+      setCallBusy(true);
+      setCallKind(kind);
+      setMuted(false);
+      setCamOff(kind === "audio");
+      if (kind === "video") {
+        const perm =
+          cameraPermission && cameraPermission.granted
+            ? cameraPermission
+            : await requestCameraPermission();
+        if (!perm?.granted) {
+          setCamOff(true);
+        }
+      }
+      const res = await fetch(`${API_BASE_URL}/api/messenger/call/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...headers,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          conversationId: activeConversation.conversationId,
+          toUserId: activeConversation.peer.id,
+          type: kind,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to start call");
+      }
+      const data = await res.json();
+      setCallId(data?.callId ?? null);
+      setCallVisible(true);
+    } catch (e) {
+    } finally {
+      setCallBusy(false);
+    }
+  };
+
+  const handleEndCall = async (declined = false) => {
+    if (!callId || !accessToken) {
+      setCallVisible(false);
+      return;
+    }
+    try {
+      await fetch(`${API_BASE_URL}/api/messenger/call/end`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...headers,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          callId,
+          type: callKind,
+          declined,
+        }),
+      });
+    } catch (e) {
+    } finally {
+      setCallId(null);
+      setCallVisible(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -247,7 +423,13 @@ export default function Messenger() {
                     {item.peer.fullName || item.peer.username}
                   </Text>
                   <Text numberOfLines={1} className="text-xs text-gray-500">
-                    {item.lastText || " "}
+                    {(() => {
+                      const meta = extractMeta(item.lastText || "");
+                      if (meta?.kind === "story_reply") {
+                        return "📸 Replied to your story";
+                      }
+                      return extractPlainText(item.lastText || "");
+                    })()}
                   </Text>
                 </View>
                 {!!item.unread && (
@@ -286,14 +468,33 @@ export default function Messenger() {
                       .toUpperCase()}
                   </Text>
                 </View>
-                <View>
-                  <Text className="text-sm font-semibold text-gray-900">
+                <View className="flex-1">
+                  <Text
+                    className="text-sm font-semibold text-gray-900"
+                    numberOfLines={1}
+                  >
                     {activeConversation.peer.fullName ||
                       activeConversation.peer.username}
                   </Text>
-                  <Text className="text-xs text-gray-500">
+                  <Text className="text-xs text-gray-500" numberOfLines={1}>
                     @{activeConversation.peer.username}
                   </Text>
+                </View>
+                <View className="ml-auto flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => handleStartCall("audio")}
+                    disabled={callBusy}
+                    className="mr-3"
+                  >
+                    <Phone size={18} color="#111827" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleStartCall("video")}
+                    disabled={callBusy}
+                    className="mr-1"
+                  >
+                    <Video size={18} color="#111827" />
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -334,14 +535,93 @@ export default function Messenger() {
                               isMine ? "text-white" : "text-gray-900"
                             }`}
                           >
-                            {item.text}
+                            {(() => {
+                              const meta = extractMeta(item.text);
+                              const plain = extractPlainText(item.text);
+
+                              if (meta?.kind === "story_reply") {
+                                return (
+                                  <View>
+                                    <Text
+                                      className={`text-xs mb-1 ${
+                                        isMine
+                                          ? "text-white/70"
+                                          : "text-gray-600"
+                                      }`}
+                                    >
+                                      Replied to a story
+                                    </Text>
+
+                                    {meta.story_preview_url && (
+                                      <Image
+                                        source={{ uri: meta.story_preview_url }}
+                                        style={{
+                                          width: 120,
+                                          height: 120,
+                                          borderRadius: 10,
+                                          marginBottom: 6,
+                                        }}
+                                        resizeMode="cover"
+                                      />
+                                    )}
+
+                                    {meta.reply?.emoji_code && (
+                                      <Text style={{ fontSize: 24 }}>
+                                        {
+                                          ["👍", "❤️", "😂", "😲", "😢", "😡"][
+                                            meta.reply.emoji_code - 1
+                                          ]
+                                        }
+                                      </Text>
+                                    )}
+
+                                    {meta.reply?.text && (
+                                      <Text
+                                        className={
+                                          isMine
+                                            ? "text-white"
+                                            : "text-gray-900"
+                                        }
+                                      >
+                                        {meta.reply.text}
+                                      </Text>
+                                    )}
+
+                                    {plain ? (
+                                      <Text
+                                        className={
+                                          isMine
+                                            ? "text-white"
+                                            : "text-gray-900"
+                                        }
+                                      >
+                                        {plain}
+                                      </Text>
+                                    ) : null}
+                                  </View>
+                                );
+                              }
+
+                              return (
+                                <Text
+                                  className={`text-sm ${
+                                    isMine ? "text-white" : "text-gray-900"
+                                  }`}
+                                >
+                                  {plain}
+                                </Text>
+                              );
+                            })()}
                           </Text>
                         </View>
                       </View>
                     );
                   }}
                   ListFooterComponent={
-                    msgCursor && !msgDone ? (
+                    messages &&
+                    messages.length >= 20 &&
+                    msgCursor &&
+                    !msgDone ? (
                       <TouchableOpacity
                         onPress={() =>
                           activeId &&
@@ -392,6 +672,106 @@ export default function Messenger() {
           )}
         </View>
       </View>
+
+      {activeConversation && (
+        <Modal
+          visible={callVisible}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => handleEndCall(false)}
+        >
+          <SafeAreaView className="flex-1 bg-black">
+            <View className="flex-1 items-center justify-center px-8">
+              <View className="items-center mb-10">
+                <View className="h-28 w-28 rounded-full bg-gray-200 items-center justify-center mb-4">
+                  <Text className="text-3xl font-semibold text-gray-700">
+                    {(
+                      activeConversation.peer.fullName ||
+                      activeConversation.peer.username ||
+                      "?"
+                    )
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+                <Text className="text-white text-xl font-semibold">
+                  {activeConversation.peer.fullName ||
+                    activeConversation.peer.username}
+                </Text>
+                <Text className="text-gray-300 text-sm mt-2">
+                  {callKind === "video" ? "Video call" : "Audio call"}
+                </Text>
+              </View>
+
+              {callKind === "video" && (
+                <View className="w-full aspect-[3/4] bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden items-center justify-center">
+                  {!cameraPermission ? (
+                    <Text className="text-gray-400 text-xs px-4 text-center">
+                      Requesting camera permission
+                    </Text>
+                  ) : !cameraPermission.granted || camOff ? (
+                    <View className="items-center">
+                      <VideoOff size={40} color="#4B5563" />
+                      <Text className="text-gray-400 text-xs px-4 text-center mt-3">
+                        Camera is off
+                      </Text>
+                    </View>
+                  ) : (
+                    <CameraView
+                      style={{ width: "100%", height: "100%" }}
+                      facing={cameraType}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+
+            <View className="pb-10 flex-row items-center justify-center">
+              <TouchableOpacity
+                onPress={() => setMuted((m) => !m)}
+                className="h-14 w-14 rounded-full bg-gray-700 items-center justify-center mx-4"
+              >
+                {muted ? (
+                  <MicOff size={24} color="#ffffff" />
+                ) : (
+                  <Mic size={24} color="#ffffff" />
+                )}
+              </TouchableOpacity>
+
+              {callKind === "video" && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => setCamOff((c) => !c)}
+                    className="h-14 w-14 rounded-full bg-gray-700 items-center justify-center mx-4"
+                  >
+                    {camOff ? (
+                      <VideoOff size={24} color="#ffffff" />
+                    ) : (
+                      <Video size={24} color="#ffffff" />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() =>
+                      setCameraType((c) => (c === "front" ? "back" : "front"))
+                    }
+                    className="h-14 w-14 rounded-full bg-gray-700 items-center justify-center mx-4"
+                  >
+                    <Camera size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                </>
+              )}
+
+              <TouchableOpacity
+                onPress={() => handleEndCall(false)}
+                className="h-16 w-16 rounded-full bg-red-500 items-center justify-center mx-4"
+              >
+                <PhoneOff size={28} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }

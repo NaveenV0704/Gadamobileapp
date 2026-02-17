@@ -106,7 +106,16 @@ export async function fetchPosts(
         "Server Timeout (Error 524): The server is taking too long to respond. Please try again later.",
       );
     }
-    const text = await response.text();
+    if (response.status === 429) {
+      const text = await response.text().catch(() => "");
+      console.warn("[PostService] Posts rate limited body:", text);
+      throw new Error(
+        text && text.toLowerCase().includes("too many requests")
+          ? "Too many requests, please try again later."
+          : "Too many requests (429)",
+      );
+    }
+    const text = await response.text().catch(() => "");
     console.error("[PostService] Fetch posts failed body:", text);
     throw new Error(`Failed to fetch posts: ${response.status}`);
   }
