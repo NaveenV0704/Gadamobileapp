@@ -138,8 +138,6 @@ export function PostCard({ post }: PostCardProps) {
     : "just now";
   const isLive = post.live?.isLive;
 
-  console.log("Post from API", post);
-
   // State
   const [likes, setLikes] = useState<string[]>(post.likes || []);
   const [comments, setComments] = useState<Comment[]>(post.comments || []);

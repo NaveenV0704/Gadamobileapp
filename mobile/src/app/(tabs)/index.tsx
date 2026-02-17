@@ -150,6 +150,14 @@ export default function Feed() {
           Alert.alert("Session expired", "Please sign in again.", [
             { text: "OK", onPress: () => router.replace("/(auth)/login") },
           ]);
+        } else if (
+          msg.includes("429") ||
+          msg.toLowerCase().includes("too many requests")
+        ) {
+          console.warn(
+            "Posts request rate limited, temporarily disabling auto loadMore",
+          );
+          setHasMore(false);
         } else {
           console.error("Failed to load posts", error);
         }

@@ -1,10 +1,16 @@
 import { API_BASE_URL } from "../constants/config";
 import { Story } from "../types";
 
+export type StoryMeta = {
+  caption?: string;
+  overlays?: any[] | null;
+  musicUrl?: string | null;
+  musicVolume?: number | null;
+};
+
 export async function fetchStories(
   headers: Record<string, string>,
 ): Promise<Story[]> {
-  // Remove Content-Type for GET requests to avoid 500 errors on some backends
   const requestHeaders = { ...headers };
   delete requestHeaders["Content-Type"];
 
@@ -31,19 +37,28 @@ export async function fetchStories(
 
     const data = await res.json();
 
-    // Check if the response is wrapped in a 'data' field
     if (
       data &&
       typeof data === "object" &&
       "data" in data &&
-      Array.isArray(data.data)
+      Array.isArray((data as any).data)
     ) {
-      return data.data;
+      return (data as any).data;
     }
 
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error(`[StoryService] Network or parsing error:`, error);
+    const msg = String(
+      (error as any)?.message ?? (error as any) ?? "Unknown error",
+    );
+    if (
+      msg.includes("429") ||
+      msg.toLowerCase().includes("too many requests")
+    ) {
+      console.warn("[StoryService] Rate limited while fetching stories:", msg);
+    } else {
+      console.error("[StoryService] Network or parsing error:", error);
+    }
     throw error;
   }
 }
@@ -119,4 +134,56 @@ export async function fetchStoryViewers(
   });
   if (!response.ok) throw new Error("Failed to fetch story viewers");
   return response.json();
+}
+
+export async function uploadStory(
+  file: { uri: string; name?: string; type?: string },
+  meta: StoryMeta,
+  headers: Record<string, string>,
+) {
+  const form = new FormData();
+  form.append("file", {
+    uri: file.uri,
+    name: file.name || "story",
+    type: file.type || "image/jpeg",
+  } as any);
+  form.append("meta", JSON.stringify(meta || {}));
+
+  const uploadHeaders = { ...headers };
+  delete uploadHeaders["Content-Type"];
+
+  const res = await fetch(`${API_BASE_URL}/api/stories`, {
+    method: "POST",
+    headers: uploadHeaders,
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("[StoryService] uploadStory failed:", text);
+    throw new Error(text || "Failed to upload story");
+  }
+
+  return res.json();
+}
+
+export async function addTextStory(
+  payload: any,
+  headers: Record<string, string>,
+) {
+  const jsonHeaders = { ...headers, "Content-Type": "application/json" };
+
+  const res = await fetch(`${API_BASE_URL}/api/stories/text`, {
+    method: "POST",
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("[StoryService] addTextStory failed:", text);
+    throw new Error(text || "Failed to create text story");
+  }
+
+  return res.json();
 }
