@@ -862,279 +862,272 @@ export default function Profile() {
       </Modal>
       <Modal
         visible={menuVisible}
-        animationType="fade"
-        transparent
+        animationType="slide"
+        transparent={false}
         onRequestClose={() => setMenuVisible(false)}
       >
-        <TouchableOpacity
-          className="flex-1"
-          activeOpacity={1}
-          onPress={() => setMenuVisible(false)}
-          style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
-        />
-        <View
-          style={{
-            position: "absolute",
-            right: 12,
-            top: 70,
-            minWidth: 220,
-          }}
-          className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-        >
-          {/* Home */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Home size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Home</Text>
-            </View>
-          </TouchableOpacity>
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+            <Text className="text-lg font-bold">Menu</Text>
+            <TouchableOpacity onPress={() => setMenuVisible(false)}>
+              <Text className="text-blue-600 text-sm">Close</Text>
+            </TouchableOpacity>
+          </View>
 
-          <View className="h-px bg-gray-100" />
-
-          {/* Profile */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <UserIcon size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Profile</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          {/* People */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/friends");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Users size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">People</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          {/* Saved */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/saved");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Bookmark size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Saved</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMineOpen((v) => !v);
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Box size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Mine</Text>
-            </View>
-            {mineOpen ? (
-              <ChevronDown size={18} color="#111827" />
-            ) : (
-              <ChevronRight size={18} color="#111827" />
-            )}
-          </TouchableOpacity>
-          {mineOpen ? (
-            <View className="px-4 pb-2">
-              <TouchableOpacity
-                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "popular" } });
-                }}
-              >
-                <FileText size={18} color="#111827" />
-                <Text className="text-gray-700">Popular</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "offers" } });
-                }}
-              >
-                <Tag size={18} color="#111827" />
-                <Text className="text-gray-700">My Offers</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "blogs" } });
-                }}
-              >
-                <FileText size={18} color="#111827" />
-                <Text className="text-gray-700">My Blogs</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-          <View className="h-px bg-gray-100" />
-
-          {/* Memories */}
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/memories");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Clock size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Memories</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push({ pathname: "/(tabs)/mine", params: { section: "scheduled" } });
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <CalendarIcon size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Scheduled</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/packages");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <CircleDollarSign size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Packages</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push({ pathname: "/(tabs)/mine", params: { section: "affiliates" } });
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <HandCoins size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Affiliates</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push({ pathname: "/(tabs)/mine", params: { section: "ads" } });
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Megaphone size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Ads Manager</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/points");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <Coins size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Points</Text>
-            </View>
-            <Text className="text-blue-600 font-semibold">{points}</Text>
-          </TouchableOpacity>
-
-          {isAdmin ? (
-            <>
-              <View className="h-px bg-gray-100" />
+          <ScrollView contentContainerStyle={{ paddingVertical: 8 }}>
+            <View className="bg-white">
               <TouchableOpacity
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
                   setMenuVisible(false);
-                  // router.push("/(tabs)/admin");
+                  router.push("/(tabs)");
                 }}
               >
                 <View className="flex-row items-center gap-3">
-                  <Shield size={18} color="#111827" />
-                  <Text className="text-gray-900 font-medium">Admin panel</Text>
+                  <Home size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Home</Text>
                 </View>
               </TouchableOpacity>
-            </>
-          ) : null}
 
-          <View className="h-px bg-gray-100" />
+              <View className="h-px bg-gray-100" />
 
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/wallet");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <WalletIcon size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Wallet</Text>
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <UserIcon size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Profile</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/friends");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Users size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">People</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/saved");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Bookmark size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Saved</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMineOpen((v) => !v);
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Box size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Mine</Text>
+                </View>
+                {mineOpen ? (
+                  <ChevronDown size={18} color="#111827" />
+                ) : (
+                  <ChevronRight size={18} color="#111827" />
+                )}
+              </TouchableOpacity>
+              {mineOpen ? (
+                <View className="px-4 pb-2">
+                  <TouchableOpacity
+                    className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                    onPress={() => {
+                      setMenuVisible(false);
+                      router.push({ pathname: "/(tabs)/mine", params: { section: "popular" } });
+                    }}
+                  >
+                    <FileText size={18} color="#111827" />
+                    <Text className="text-gray-700">Popular</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                    onPress={() => {
+                      setMenuVisible(false);
+                      router.push({ pathname: "/(tabs)/mine", params: { section: "offers" } });
+                    }}
+                  >
+                    <Tag size={18} color="#111827" />
+                    <Text className="text-gray-700">My Offers</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                    onPress={() => {
+                      setMenuVisible(false);
+                      router.push({ pathname: "/(tabs)/mine", params: { section: "blogs" } });
+                    }}
+                  >
+                    <FileText size={18} color="#111827" />
+                    <Text className="text-gray-700">My Blogs</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/memories");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Clock size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Memories</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "scheduled" } });
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <CalendarIcon size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Scheduled</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/packages");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <CircleDollarSign size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Packages</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "affiliates" } });
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <HandCoins size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Affiliates</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "ads" } });
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Megaphone size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Ads Manager</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/points");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Coins size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Points</Text>
+                </View>
+                <Text className="text-blue-600 font-semibold">{points}</Text>
+              </TouchableOpacity>
+
+              {isAdmin ? (
+                <>
+                  <View className="h-px bg-gray-100" />
+                  <TouchableOpacity
+                    className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                    onPress={() => {
+                      setMenuVisible(false);
+                      // router.push("/(tabs)/admin");
+                    }}
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <Shield size={18} color="#111827" />
+                      <Text className="text-gray-900 font-medium">Admin panel</Text>
+                    </View>
+                  </TouchableOpacity>
+                </>
+              ) : null}
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/wallet");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <WalletIcon size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Wallet</Text>
+                </View>
+                <Text className="text-blue-600 font-semibold">₦{wallet}</Text>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={async () => {
+                  setMenuVisible(false);
+                  await handleLogout();
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <LogOut size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Logout</Text>
+                </View>
+              </TouchableOpacity>
             </View>
-            <Text className="text-blue-600 font-semibold">₦{wallet}</Text>
-          </TouchableOpacity>
-
-          <View className="h-px bg-gray-100" />
-
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={async () => {
-              setMenuVisible(false);
-              await handleLogout();
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <LogOut size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Logout</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
