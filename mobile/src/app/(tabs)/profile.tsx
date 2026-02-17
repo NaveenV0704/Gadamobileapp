@@ -45,6 +45,13 @@ import {
   MessageCircle,
   FileText,
   Calendar as CalendarIcon,
+  Box,
+  Tag,
+  ChevronDown,
+  ChevronRight,
+  CircleDollarSign,
+  HandCoins,
+  Megaphone,
 } from "lucide-react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -92,6 +99,7 @@ export default function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [mineOpen, setMineOpen] = useState(false);
 
   const points =
     // @ts-ignore
@@ -878,7 +886,7 @@ export default function Profile() {
             className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
             onPress={() => {
               setMenuVisible(false);
-              router.push("/(tabs)/home");
+              router.push("/(tabs)");
             }}
           >
             <View className="flex-row items-center gap-3">
@@ -936,6 +944,58 @@ export default function Profile() {
 
           <View className="h-px bg-gray-100" />
 
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMineOpen((v) => !v);
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Box size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Mine</Text>
+            </View>
+            {mineOpen ? (
+              <ChevronDown size={18} color="#111827" />
+            ) : (
+              <ChevronRight size={18} color="#111827" />
+            )}
+          </TouchableOpacity>
+          {mineOpen ? (
+            <View className="px-4 pb-2">
+              <TouchableOpacity
+                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "popular" } });
+                }}
+              >
+                <FileText size={18} color="#111827" />
+                <Text className="text-gray-700">Popular</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "offers" } });
+                }}
+              >
+                <Tag size={18} color="#111827" />
+                <Text className="text-gray-700">My Offers</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({ pathname: "/(tabs)/mine", params: { section: "blogs" } });
+                }}
+              >
+                <FileText size={18} color="#111827" />
+                <Text className="text-gray-700">My Blogs</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <View className="h-px bg-gray-100" />
+
           {/* Memories */}
           <TouchableOpacity
             className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
@@ -947,6 +1007,66 @@ export default function Profile() {
             <View className="flex-row items-center gap-3">
               <Clock size={18} color="#111827" />
               <Text className="text-gray-900 font-medium">Memories</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push({ pathname: "/(tabs)/mine", params: { section: "scheduled" } });
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <CalendarIcon size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Scheduled</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/packages");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <CircleDollarSign size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Packages</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push({ pathname: "/(tabs)/mine", params: { section: "affiliates" } });
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <HandCoins size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Affiliates</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push({ pathname: "/(tabs)/mine", params: { section: "ads" } });
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <Megaphone size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Ads Manager</Text>
             </View>
           </TouchableOpacity>
 

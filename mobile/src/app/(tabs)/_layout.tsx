@@ -65,6 +65,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="packages"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="mine"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
