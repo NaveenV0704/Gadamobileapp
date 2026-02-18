@@ -924,7 +924,7 @@ export default function Profile() {
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
                   setMenuVisible(false);
-                  router.push("/(tabs)/saved");
+                  router.push("/saved");
                 }}
               >
                 <View className="flex-row items-center gap-3">
