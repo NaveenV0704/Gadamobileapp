@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Gada Chat",
+    "slug": "GadaChat",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/gadalogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/gadalogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,13 +16,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/gadalogo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dtzenix.mobile"
+      "label": "Gada Chat",
+      "package": "com.gada.mobile"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#ffffff",
+      "barStyle": "dark-content",
+      "translucent": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/gadalogo.png"
     },
     "scheme": "gadamobile",
     "plugins": [
@@ -35,6 +41,12 @@
         }
       ],
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "06b45272-f878-4ce0-b396-ab170fa4b173"
+      }
+    }
   }
 }
