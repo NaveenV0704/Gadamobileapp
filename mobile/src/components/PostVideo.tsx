@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { useEvent } from "expo";
@@ -11,8 +11,6 @@ export const PostVideo = ({ uri }: PostVideoProps) => {
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true;
     player.muted = true;
-    // We don't auto-play here to save data/battery unless in view
-    // But for simplicity in migration:
     player.play();
   });
 
@@ -31,8 +29,9 @@ export const PostVideo = ({ uri }: PostVideoProps) => {
       <VideoView
         style={StyleSheet.absoluteFill}
         player={player}
-        fullscreenOptions={{ enabled: true }}
-        allowsPictureInPicture
+        fullscreenOptions={{ enabled: false }}
+        allowsPictureInPicture={false}
+        useNativeControls={false}
         contentFit="contain"
       />
       {isBuffering && (
