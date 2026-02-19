@@ -13,6 +13,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Eye, EyeOff } from "lucide-react-native";
+import { ASSET_BASE_URL } from "../../constants/config";
 
 export default function Login() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function Login() {
         <View className="flex-row items-center">
           <Image
             source={{
-              uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+              uri: `${ASSET_BASE_URL}/uploads/gadalogo.png`,
             }}
             className="w-12 h-12 mr-2"
             resizeMode="contain"
