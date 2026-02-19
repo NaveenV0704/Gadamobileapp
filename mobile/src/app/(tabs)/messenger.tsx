@@ -22,7 +22,7 @@ import {
   Camera,
 } from "lucide-react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { API_BASE_URL } from "../../constants/config";
+import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
 
 type Peer = {
   id: number;
@@ -408,12 +408,24 @@ export default function Messenger() {
                   item.conversationId === activeId ? "bg-blue-50" : "bg-white"
                 }`}
               >
-                <View className="h-10 w-10 rounded-full bg-gray-300 mr-3 items-center justify-center">
-                  <Text className="text-sm font-semibold text-white">
-                    {(item.peer.fullName || item.peer.username || "?")
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </Text>
+                <View className="h-10 w-10 rounded-full bg-gray-300 mr-3 items-center justify-center overflow-hidden">
+                  {item.peer.avatar ? (
+                    <Image
+                      source={{
+                        uri: item.peer.avatar.startsWith("http")
+                          ? item.peer.avatar
+                          : `${ASSET_BASE_URL}/${item.peer.avatar.replace(/^\/+/, "")}`,
+                      }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text className="text-sm font-semibold text-white">
+                      {(item.peer.fullName || item.peer.username || "?")
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </Text>
+                  )}
                 </View>
                 <View className="flex-1">
                   <Text
@@ -457,16 +469,31 @@ export default function Messenger() {
           {activeConversation && (
             <View className="flex-1">
               <View className="px-3 py-2 border-b border-gray-200 flex-row items-center">
-                <View className="h-9 w-9 rounded-full bg-gray-300 mr-3 items-center justify-center">
-                  <Text className="text-sm font-semibold text-white">
-                    {(
-                      activeConversation.peer.fullName ||
-                      activeConversation.peer.username ||
-                      "?"
-                    )
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </Text>
+                <View className="h-9 w-9 rounded-full bg-gray-300 mr-3 items-center justify-center overflow-hidden">
+                  {activeConversation.peer.avatar ? (
+                    <Image
+                      source={{
+                        uri: activeConversation.peer.avatar.startsWith("http")
+                          ? activeConversation.peer.avatar
+                          : `${ASSET_BASE_URL}/${activeConversation.peer.avatar.replace(
+                              /^\/+/,
+                              "",
+                            )}`,
+                      }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text className="text-sm font-semibold text-white">
+                      {(
+                        activeConversation.peer.fullName ||
+                        activeConversation.peer.username ||
+                        "?"
+                      )
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </Text>
+                  )}
                 </View>
                 <View className="flex-1">
                   <Text

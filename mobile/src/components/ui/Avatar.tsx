@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Image } from "react-native";
 import { cn } from "../../lib/utils";
-import { API_BASE_URL } from "../../constants/config";
+import { ASSET_BASE_URL } from "../../constants/config";
 
 interface AvatarProps {
   source?: string | null;
@@ -31,8 +31,8 @@ export function Avatar({
     raw && raw.startsWith("http")
       ? raw
       : raw?.startsWith("/")
-        ? `${API_BASE_URL}${raw}`
-        : `${API_BASE_URL}/${raw || ""}`;
+        ? `${ASSET_BASE_URL}${raw}`
+        : `${ASSET_BASE_URL}/${raw || ""}`;
 
   return (
     <View

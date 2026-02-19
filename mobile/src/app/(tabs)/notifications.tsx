@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAuthHeader } from "../../hooks/useAuthHeader";
-import { API_BASE_URL } from "../../constants/config";
+import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
 import { useRouter } from "expo-router";
 import { Post } from "../../types";
 import { PostCard } from "../../components/PostCard";
@@ -273,8 +273,10 @@ export default function Notifications() {
           renderItem={({ item }) => {
             const unread = !item.readAt;
             const avatarUri = item.actorAvatar
-              ? `${API_BASE_URL}${item.actorAvatar}`
-              : `${API_BASE_URL}/uploads//profile/defaultavatar.png`;
+              ? item.actorAvatar.startsWith("http")
+                ? item.actorAvatar
+                : `${ASSET_BASE_URL}/${item.actorAvatar.replace(/^\/+/, "")}`
+              : `${ASSET_BASE_URL}/uploads/profile/defaultavatar.png`;
             return (
               <TouchableOpacity
                 onPress={() => navigateTo(item)}

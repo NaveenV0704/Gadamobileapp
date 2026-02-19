@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,21 @@ export default function Memories() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activePostId, setActivePostId] = useState<number | null>(null);
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: any) => {
+      const firstVisible = viewableItems?.find((v: any) => v.isViewable);
+      if (!firstVisible) return;
+      const id =
+        typeof firstVisible.item?.id === "number"
+          ? firstVisible.item.id
+          : Number(firstVisible.item?.id) || null;
+      if (id) setActivePostId(id);
+    },
+  ).current;
 
   const loadMemories = useCallback(
     async (isRefresh = false) => {
@@ -137,9 +152,11 @@ export default function Memories() {
           }
           renderItem={({ item }) => (
             <View className="bg-white border-b border-gray-200">
-              <PostCard post={item} />
+              <PostCard post={item} active={item.id != null && item.id === activePostId} />
             </View>
           )}
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={onViewableItemsChanged}
           contentContainerStyle={{ paddingBottom: 16 }}
         />
       )}

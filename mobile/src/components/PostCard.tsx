@@ -11,19 +11,19 @@ import { Post, User, Comment } from "../types";
 import { Avatar } from "./ui/Avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageCircle, Share2, Send } from "lucide-react-native";
-import { API_BASE_URL } from "../constants/config";
+import { API_BASE_URL, ASSET_BASE_URL } from "../constants/config";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { PostVideo } from "./PostVideo";
 import { useAuth } from "../contexts/AuthContext";
 import { useAuthHeader } from "../hooks/useAuthHeader";
 import { reactToPost, commentOnPost } from "../services/postService";
 import ReactionPicker from "./ReactionPicker";
-import { stripUploads } from "../constants/url";
 
 interface PostCardProps {
   post: Post;
   onLike?: () => void;
   onComment?: () => void;
+  active?: boolean;
 }
 
 const REACTION_EMOJIS: Record<string, string> = {
@@ -87,9 +87,8 @@ const buildUrl = (path?: string) => {
 
   if (path.startsWith("http")) return path;
 
-  const clean = stripUploads(path).replace(/^\/+/, "");
-
-  return `${API_BASE_URL}/uploads/${clean}`;
+  const clean = path.replace(/^\/+/, "");
+  return `${ASSET_BASE_URL}/${clean}`;
 };
 
 const PostImage = ({ uri, index }: { uri: string; index: number }) => {
@@ -129,7 +128,7 @@ const PostImage = ({ uri, index }: { uri: string; index: number }) => {
   );
 };
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, active }: PostCardProps) {
   const { user, accessToken } = useAuth();
   const headers = useAuthHeader(accessToken);
   const author = post.author || {};
@@ -323,7 +322,7 @@ export function PostCard({ post }: PostCardProps) {
         {/* Videos */}
         {mediaVideos.length > 0 &&
           mediaVideos.map((vid, idx) => (
-            <PostVideo key={`vid-${idx}`} uri={buildUrl(vid)} />
+            <PostVideo key={`vid-${idx}`} uri={buildUrl(vid)} active={active} />
           ))}
       </View>
 

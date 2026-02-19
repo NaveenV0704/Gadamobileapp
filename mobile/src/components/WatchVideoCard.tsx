@@ -1,27 +1,27 @@
 import { useMemo, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react-native";
-import { API_BASE_URL } from "../constants/config";
-import { stripUploads } from "../lib/url";
+import { ASSET_BASE_URL } from "../constants/config";
 import { Post } from "../types";
 import { Avatar } from "./ui/Avatar";
 import { PostVideo } from "./PostVideo";
 
 type Props = {
   post: Post;
+  active?: boolean;
 };
 
-export default function WatchVideoCard({ post }: Props) {
+export default function WatchVideoCard({ post, active }: Props) {
   const videoUrl = useMemo(() => {
     const first =
       (post as any).videos && (post as any).videos.length > 0
         ? (post as any).videos[0]
         : null;
     if (!first) return "";
-    const path = stripUploads(first);
-    if (!path) return "";
+    if (typeof first !== "string") return "";
     if (first.startsWith("http")) return first;
-    return `${API_BASE_URL}/uploads/${path}`;
+    const clean = first.replace(/^\/+/, "");
+    return `${ASSET_BASE_URL}/${clean}`;
   }, [post]);
 
   const [likeCount, setLikeCount] = useState(() => {
@@ -112,7 +112,7 @@ export default function WatchVideoCard({ post }: Props) {
 
       <View style={styles.videoContainer}>
         {videoUrl ? (
-          <PostVideo uri={videoUrl} />
+          <PostVideo uri={videoUrl} active={active} />
         ) : (
           <View
             style={[

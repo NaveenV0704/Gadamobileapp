@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  ViewToken,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/AuthContext";
@@ -25,6 +26,7 @@ export default function Watch() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeId, setActiveId] = useState<string | number | null>(null);
 
   const loadMore = async (reset = false) => {
     if (loading) return;
@@ -64,6 +66,19 @@ export default function Watch() {
     loadMore(true);
   };
 
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: Array<ViewToken> }) => {
+      if (!viewableItems.length) return;
+      const first = viewableItems[0];
+      const id = first.item?.id ?? first.index;
+      setActiveId(id);
+    },
+  ).current;
+
   if (authLoading || items === null) {
     return (
       <SafeAreaView className="flex-1 bg-[#f0f2f5]">
@@ -93,13 +108,20 @@ export default function Watch() {
             tintColor="#1877F2"
           />
         }
-        renderItem={({ item }) => <WatchVideoCard post={item} />}
+        renderItem={({ item, index }) => (
+          <WatchVideoCard
+            post={item}
+            active={(item.id ?? index) === activeId}
+          />
+        )}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
           if (!loading && !done) {
             loadMore(false);
           }
         }}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={onViewableItemsChanged}
         contentContainerStyle={{ paddingBottom: 16 }}
       />
     </SafeAreaView>
