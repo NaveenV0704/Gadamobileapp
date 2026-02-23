@@ -62,6 +62,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="reels"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
           name="watch"
           options={{
             href: null,
