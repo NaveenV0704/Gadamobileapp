@@ -27,7 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react-native";
-import { API_BASE_URL } from "../constants/config";
+import { ASSET_BASE_URL } from "../constants/config";
 import { stripUploads } from "../lib/url";
 import {
   reactToStory,
@@ -77,9 +77,8 @@ export default function StoryViewer({
     if (!url) return "";
     if (url.startsWith("http")) return url;
 
-    // Ensure we don't have double uploads/ or leading slashes
     const cleanPath = stripUploads(url).replace(/^\/+/, "");
-    return `${API_BASE_URL}/uploads/${cleanPath}`;
+    return `${ASSET_BASE_URL}/${cleanPath}`;
   };
 
   const currentUserStory = stories[userIndex];

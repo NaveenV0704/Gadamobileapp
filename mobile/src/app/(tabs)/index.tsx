@@ -13,13 +13,14 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { PostCard } from "../../components/PostCard";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import type { ViewToken } from "react-native";
 import { Post } from "../../types";
 import { fetchPosts } from "../../services/postService";
 import { useAuthHeader } from "../../hooks/useAuthHeader";
 import { StoryProvider } from "../../contexts/StoryContext";
 import { Stories } from "../../components/Stories";
 import { CreatePostInput } from "../../components/CreatePostInput";
-import { API_BASE_URL } from "../../constants/config";
+import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
 
 // --- Helpers from Web Feed.tsx ---
 
@@ -70,9 +71,22 @@ export default function Feed() {
   const [offset, setOffset] = useState<number | string>(0);
   const LIMIT = 20;
 
+  const [activePostId, setActivePostId] = useState<number | null>(null);
+
   const authHeader = useAuthHeader(accessToken);
   const lastIdsStrRef = useRef<string>("");
   const loadingRef = useRef(false);
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const firstVisible = viewableItems.find((v) => v.isViewable);
+      if (!firstVisible) return;
+      const id = getPostId(firstVisible.item);
+      if (id) setActivePostId(id);
+    },
+  ).current;
 
   const loadPosts = useCallback(
     async (isRefresh = false) => {
@@ -263,7 +277,7 @@ export default function Feed() {
         <View className="bg-white px-4 py-2 flex-row items-center border-b border-gray-200">
           <Image
             source={{
-              uri: `${API_BASE_URL}/uploads/gadalogo.png`,
+              uri: `${ASSET_BASE_URL}/uploads/gadalogo.png`,
             }}
             className="w-10 h-10 mr-2"
             resizeMode="contain"
@@ -276,11 +290,14 @@ export default function Feed() {
           keyExtractor={(item, index) =>
             String(item.id || item.post_id || index)
           }
-          renderItem={({ item }) => (
-            <View className="bg-white mb-2 border-y border-gray-200 shadow-sm">
-              <PostCard post={item as Post} />
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const id = getPostId(item);
+            return (
+              <View className="bg-white mb-2 border-y border-gray-200 shadow-sm">
+                <PostCard post={item as Post} active={id != null && id === activePostId} />
+              </View>
+            );
+          }}
           ListHeaderComponent={
             <View>
               {/* Create Post Section */}
@@ -302,7 +319,13 @@ export default function Feed() {
                       Promoted
                     </Text>
                   </View>
-                  <PostCard post={promotedWithLive as Post} />
+                  <PostCard
+                    post={promotedWithLive as Post}
+                    active={
+                      getPostId(promotedWithLive) != null &&
+                      getPostId(promotedWithLive) === activePostId
+                    }
+                  />
                 </View>
               )}
             </View>
@@ -327,6 +350,8 @@ export default function Feed() {
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.8}
           contentContainerStyle={{ paddingBottom: 80 }}
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={onViewableItemsChanged}
         />
       </SafeAreaView>
     </StoryProvider>

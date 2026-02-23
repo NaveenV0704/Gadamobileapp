@@ -16,6 +16,7 @@ export default function TabLayout() {
           tabBarInactiveTintColor: "#6b7280",
           tabBarShowLabel: false,
           tabBarStyle: {
+            backgroundColor: "#ffffff",
             borderTopWidth: 1,
             borderTopColor: "#e5e7eb",
             height: 60,
@@ -58,6 +59,12 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size }) => (
               <Bell size={28} color={color} strokeWidth={2} />
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="reels"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen

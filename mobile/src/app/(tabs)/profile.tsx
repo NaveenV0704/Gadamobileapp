@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { useRouter } from "expo-router";
-import { API_BASE_URL } from "../../constants/config";
+import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
 import { useEffect, useState, useCallback } from "react";
 import { useAuthHeader } from "../../hooks/useAuthHeader";
 import {
@@ -53,6 +53,7 @@ import {
   CircleDollarSign,
   HandCoins,
   Megaphone,
+  Settings,
 } from "lucide-react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -221,8 +222,8 @@ export default function Profile() {
   const buildProfileUrl = (path?: string | null) => {
     if (!path) return undefined;
     if (path.startsWith("http")) return path;
-    if (path.startsWith("/")) return `${API_BASE_URL}${path}`;
-    return `${API_BASE_URL}/${path}`;
+    if (path.startsWith("/")) return `${ASSET_BASE_URL}${path}`;
+    return `${ASSET_BASE_URL}/${path}`;
   };
 
   const handleChange = (key: keyof EditProfilePayload, value: string) => {
@@ -958,7 +959,10 @@ export default function Profile() {
                     className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
                     onPress={() => {
                       setMenuVisible(false);
-                      router.push({ pathname: "/(tabs)/mine", params: { section: "popular" } });
+                      router.push({
+                        pathname: "/(tabs)/mine",
+                        params: { section: "popular" },
+                      });
                     }}
                   >
                     <FileText size={18} color="#111827" />
@@ -968,7 +972,10 @@ export default function Profile() {
                     className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
                     onPress={() => {
                       setMenuVisible(false);
-                      router.push({ pathname: "/(tabs)/mine", params: { section: "offers" } });
+                      router.push({
+                        pathname: "/(tabs)/mine",
+                        params: { section: "offers" },
+                      });
                     }}
                   >
                     <Tag size={18} color="#111827" />
@@ -978,7 +985,10 @@ export default function Profile() {
                     className="flex-row items-center gap-3 px-2 py-2 active:opacity-80"
                     onPress={() => {
                       setMenuVisible(false);
-                      router.push({ pathname: "/(tabs)/mine", params: { section: "blogs" } });
+                      router.push({
+                        pathname: "/(tabs)/mine",
+                        params: { section: "blogs" },
+                      });
                     }}
                   >
                     <FileText size={18} color="#111827" />
@@ -1004,6 +1014,57 @@ export default function Profile() {
 
               <View className="h-px bg-gray-100" />
 
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/reels");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <PlayCircle size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Reels</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({
+                    pathname: "/(tabs)/mine",
+                    params: { section: "offers" },
+                  });
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Tag size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Offers</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({
+                    pathname: "/(tabs)/mine",
+                    params: { section: "blogs" },
+                  });
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <FileText size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Blogs</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
               <TouchableOpacity
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
@@ -1023,7 +1084,10 @@ export default function Profile() {
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
                   setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "scheduled" } });
+                  router.push({
+                    pathname: "/(tabs)/mine",
+                    params: { section: "scheduled" },
+                  });
                 }}
               >
                 <View className="flex-row items-center gap-3">
@@ -1053,7 +1117,27 @@ export default function Profile() {
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
                   setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "affiliates" } });
+                  router.push("/representative");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <FileText size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">
+                    Representative
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push({
+                    pathname: "/(tabs)/mine",
+                    params: { section: "affiliates" },
+                  });
                 }}
               >
                 <View className="flex-row items-center gap-3">
@@ -1068,7 +1152,10 @@ export default function Profile() {
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {
                   setMenuVisible(false);
-                  router.push({ pathname: "/(tabs)/mine", params: { section: "ads" } });
+                  router.push({
+                    pathname: "/(tabs)/mine",
+                    params: { section: "ads" },
+                  });
                 }}
               >
                 <View className="flex-row items-center gap-3">
@@ -1105,7 +1192,9 @@ export default function Profile() {
                   >
                     <View className="flex-row items-center gap-3">
                       <Shield size={18} color="#111827" />
-                      <Text className="text-gray-900 font-medium">Admin panel</Text>
+                      <Text className="text-gray-900 font-medium">
+                        Admin panel
+                      </Text>
                     </View>
                   </TouchableOpacity>
                 </>
@@ -1125,6 +1214,21 @@ export default function Profile() {
                   <Text className="text-gray-900 font-medium">Wallet</Text>
                 </View>
                 <Text className="text-blue-600 font-semibold">₦{wallet}</Text>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-100" />
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/settings");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Settings size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Settings</Text>
+                </View>
               </TouchableOpacity>
 
               <View className="h-px bg-gray-100" />

@@ -15,7 +15,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Avatar } from "./ui/Avatar";
 import { Plus } from "lucide-react-native";
 import { useMemo, useCallback, useState, useRef } from "react";
-import { API_BASE_URL } from "../constants/config";
+import { ASSET_BASE_URL } from "../constants/config";
 import { stripUploads } from "../lib/url";
 import { Story } from "../types";
 import StoryViewer from "./StoryViewer";
@@ -198,7 +198,8 @@ export function Stories() {
     if (!last) return null;
     if (last.type === "text") return null;
     if (last.url.startsWith("http")) return last.url;
-    return API_BASE_URL + "/uploads/" + stripUploads(last.url);
+    const cleanPath = stripUploads(last.url).replace(/^\/+/, "");
+    return `${ASSET_BASE_URL}/${cleanPath}`;
   };
 
   const parseMetaSafe = (meta: any) => {
