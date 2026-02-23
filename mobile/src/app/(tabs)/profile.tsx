@@ -1014,6 +1014,21 @@ export default function Profile() {
 
               <View className="h-px bg-gray-100" />
 
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/(tabs)/reels");
+            }}
+          >
+            <View className="flex-row items-center gap-3">
+              <PlayCircle size={18} color="#111827" />
+              <Text className="text-gray-900 font-medium">Reels</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View className="h-px bg-gray-100" />
+
               <TouchableOpacity
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
                 onPress={() => {

@@ -52,14 +52,31 @@ const useVideoSound = (): VideoSoundContextValue => {
 interface PostVideoProps {
   uri: string;
   active?: boolean;
+  onEnd?: () => void;
+  loop?: boolean;
 }
 
-export const PostVideo = ({ uri, active }: PostVideoProps) => {
+export const PostVideo = ({ uri, active, onEnd, loop = true }: PostVideoProps) => {
+  if (!uri) {
+    return (
+      <View style={styles.video}>
+        <View style={styles.overlay}>
+          <ActivityIndicator color="#ffffff" />
+        </View>
+      </View>
+    );
+  }
   const { muted, toggleMuted } = useVideoSound();
   const player = useVideoPlayer(uri, (player) => {
-    player.loop = true;
+    player.loop = loop;
     player.muted = muted;
     player.play();
+
+    if (onEnd) {
+      player.addListener("playToEnd", () => {
+        onEnd();
+      });
+    }
   });
 
   useEffect(() => {

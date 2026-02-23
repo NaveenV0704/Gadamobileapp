@@ -146,7 +146,8 @@ export async function changePassword(
       if (j && typeof j === "object" && "error" in j) {
         msg = String((j as any).error || msg);
       }
-    } catch {}
+    } catch {
+    }
   }
   return r.json();
 }
@@ -183,3 +184,4 @@ export async function revokeSession(
   if (!r.ok) throw new Error("Failed to revoke session");
   return r.json();
 }
+
