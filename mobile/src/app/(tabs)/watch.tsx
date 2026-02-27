@@ -67,12 +67,15 @@ export default function Watch() {
   };
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
+    itemVisiblePercentThreshold: 50,
   }).current;
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: Array<ViewToken> }) => {
-      if (!viewableItems.length) return;
+      if (!viewableItems.length) {
+        setActiveId(null);
+        return;
+      }
       const first = viewableItems[0];
       const id = first.item?.id ?? first.index;
       setActiveId(id);

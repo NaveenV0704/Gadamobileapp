@@ -108,7 +108,13 @@ export default function ReelsCreate() {
           <Text className="text-sm text-gray-200 mb-2">Preview</Text>
           <View className="w-full max-w-[260px] aspect-[9/16] rounded-2xl overflow-hidden bg-black self-center">
             {previewUrl ? (
-              <PostVideo uri={previewUrl} active />
+              <PostVideo
+                uri={previewUrl}
+                active
+                fill
+                fit="cover"
+                showProgress
+              />
             ) : (
               <View className="flex-1 items-center justify-center px-4">
                 <Text className="text-gray-500 text-xs text-center">

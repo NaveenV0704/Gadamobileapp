@@ -77,12 +77,15 @@ export default function Feed() {
   const lastIdsStrRef = useRef<string>("");
   const loadingRef = useRef(false);
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
+    itemVisiblePercentThreshold: 50,
   }).current;
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       const firstVisible = viewableItems.find((v) => v.isViewable);
-      if (!firstVisible) return;
+      if (!firstVisible) {
+        setActivePostId(null);
+        return;
+      }
       const id = getPostId(firstVisible.item);
       if (id) setActivePostId(id);
     },

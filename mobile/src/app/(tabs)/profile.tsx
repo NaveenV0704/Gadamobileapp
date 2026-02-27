@@ -15,7 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { useRouter } from "expo-router";
 import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuthHeader } from "../../hooks/useAuthHeader";
 import {
   fetchProfilePosts,
@@ -24,6 +24,7 @@ import {
 import { Post } from "../../types";
 import { PostCard } from "../../components/PostCard";
 import { Avatar } from "../../components/ui/Avatar";
+import type { ViewToken } from "react-native";
 import {
   EditProfilePayload,
   updateProfileDetails,
@@ -48,6 +49,7 @@ import {
   Calendar as CalendarIcon,
   Box,
   Tag,
+  Flag,
   ChevronDown,
   ChevronRight,
   CircleDollarSign,
@@ -102,6 +104,23 @@ export default function Profile() {
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [mineOpen, setMineOpen] = useState(false);
+  const [activePostId, setActivePostId] = useState<number | null>(null);
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const firstVisible = viewableItems.find((v) => v.isViewable);
+      if (!firstVisible) {
+        setActivePostId(null);
+        return;
+      }
+      const id = firstVisible.item?.id;
+      if (id) setActivePostId(id);
+    },
+  ).current;
 
   const points =
     // @ts-ignore
@@ -510,7 +529,10 @@ export default function Profile() {
         }
         renderItem={({ item }) => (
           <View className="bg-white border-y border-gray-200">
-            <PostCard post={item as Post} />
+            <PostCard
+              post={item as Post}
+              active={item.id != null && item.id === activePostId}
+            />
           </View>
         )}
         ListEmptyComponent={
@@ -527,6 +549,8 @@ export default function Profile() {
           ) : null
         }
         contentContainerStyle={{ paddingBottom: 80 }}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={onViewableItemsChanged}
       />
       <Modal visible={editVisible} animationType="slide" transparent>
         <View className="flex-1 bg-black/40 justify-center items-center">
@@ -997,6 +1021,32 @@ export default function Profile() {
                 </View>
               ) : null}
 
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/groups");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Users size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Groups</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/pages");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Flag size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Pages</Text>
+                </View>
+              </TouchableOpacity>
+
               <View className="h-px bg-gray-100" />
 
               <TouchableOpacity
@@ -1014,20 +1064,20 @@ export default function Profile() {
 
               <View className="h-px bg-gray-100" />
 
-          <TouchableOpacity
-            className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
-            onPress={() => {
-              setMenuVisible(false);
-              router.push("/(tabs)/reels");
-            }}
-          >
-            <View className="flex-row items-center gap-3">
-              <PlayCircle size={18} color="#111827" />
-              <Text className="text-gray-900 font-medium">Reels</Text>
-            </View>
-          </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push("/(tabs)/reels");
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <PlayCircle size={18} color="#111827" />
+                  <Text className="text-gray-900 font-medium">Reels</Text>
+                </View>
+              </TouchableOpacity>
 
-          <View className="h-px bg-gray-100" />
+              <View className="h-px bg-gray-100" />
 
               <TouchableOpacity
                 className="flex-row items-center justify-between px-4 py-3 active:opacity-80"
