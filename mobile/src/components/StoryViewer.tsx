@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ActivityIndicator } from "react-native";
 import { useEvent } from "expo";
 import {
+  StyleSheet,
   View,
   Text,
   Image,
   Modal,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Pressable,
   TextInput,
   KeyboardAvoidingView,
@@ -375,13 +377,19 @@ export default function StoryViewer({
               <View className="flex-1 w-full h-full">
                 {currentItem?.type === "video" && mediaUrl ? (
                   <View className="flex-1 w-full h-full items-center justify-center">
-                    <VideoView
-                      key={`video-${currentItem.id}-${mediaUrl}`}
-                      player={player}
-                      style={{ width: width, height: height }}
-                      contentFit="contain"
-                      useNativeControls={false}
-                    />
+                    <TouchableWithoutFeedback
+                      onPress={() => setIsPaused(!isPaused)}
+                    >
+                      <VideoView
+                        key={`video-${currentItem.id}-${mediaUrl}`}
+                        player={player}
+                        style={{ width: width, height: height }}
+                        contentFit="contain"
+                        nativeControls={false}
+                        allowsPictureInPicture={false}
+                        fullscreenOptions={{ enabled: false }}
+                      />
+                    </TouchableWithoutFeedback>
                   </View>
                 ) : textStoryData ? (
                   <View

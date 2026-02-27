@@ -112,7 +112,7 @@ export default function WatchVideoCard({ post, active }: Props) {
 
       <View style={styles.videoContainer}>
         {videoUrl ? (
-          <PostVideo uri={videoUrl} active={active} />
+          <PostVideo uri={videoUrl} active={active} showProgress />
         ) : (
           <View
             style={[

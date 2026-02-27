@@ -15,6 +15,43 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="settings" />
             <Stack.Screen name="reels-create" />
+            <Stack.Screen
+              name="representative"
+              options={{ title: "Representative" }}
+            />
+            <Stack.Screen name="pages/index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="pages/create"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="pages/invites"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="pages/[idOrName]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="groups/index"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="groups/create"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="groups/invites"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="groups/[handle]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="(auth)/login"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="dark" backgroundColor="#ffffff" />
         </VideoSoundProvider>
