@@ -36,6 +36,8 @@ export default function Reels() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { height: windowHeight } = Dimensions.get("window");
+  const [flatListHeight, setFlatListHeight] = useState(windowHeight - 150);
 
   const loadReels = async () => {
     if (!accessToken) return;
@@ -65,12 +67,15 @@ export default function Reels() {
   };
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
+    itemVisiblePercentThreshold: 50,
   }).current;
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: Array<ViewToken> }) => {
-      if (!viewableItems.length) return;
+      if (!viewableItems.length) {
+        setActiveIndex(-1);
+        return;
+      }
       const first = viewableItems[0];
       if (typeof first.index === "number") {
         setActiveIndex(first.index);
@@ -160,56 +165,62 @@ export default function Reels() {
         <Text className="text-[10px] text-gray-500">{reels.length} reels</Text>
       </View>
 
-      {reels.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-gray-400 text-sm text-center mb-2">
-            No reels available yet.
-          </Text>
-          <Text className="text-gray-400 text-xs text-center">
-            Tap Create reel to upload the first one.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={reels}
-          keyExtractor={(item, index) => String(item.id ?? index)}
-          pagingEnabled
-          snapToInterval={height - 72}
-          decelerationRate="fast"
-          initialNumToRender={1}
-          maxToRenderPerBatch={2}
-          windowSize={3}
-          removeClippedSubviews
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#ffffff"
-            />
-          }
-          renderItem={({ item, index }) => (
-            <View
-              style={{
-                height: height - 72,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ReelCard
-                reel={item}
-                active={index === activeIndex}
-                onLike={like}
-                onShare={share}
-                onEndedNext={onEndedNext}
+      <View
+        className="flex-1"
+        onLayout={(e) => setFlatListHeight(e.nativeEvent.layout.height)}
+      >
+        {reels.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-6">
+            <Text className="text-gray-400 text-sm text-center mb-2">
+              No reels available yet.
+            </Text>
+            <Text className="text-gray-400 text-xs text-center">
+              Tap Create reel to upload the first one.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={reels}
+            keyExtractor={(item, index) => String(item.id ?? index)}
+            pagingEnabled
+            snapToInterval={flatListHeight}
+            decelerationRate="fast"
+            initialNumToRender={1}
+            maxToRenderPerBatch={2}
+            windowSize={3}
+            removeClippedSubviews={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#ffffff"
               />
-            </View>
-          )}
-          viewabilityConfig={viewabilityConfig}
-          onViewableItemsChanged={onViewableItemsChanged}
-          contentContainerStyle={{ paddingBottom: 16 }}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+            }
+            renderItem={({ item, index }) => (
+              <View
+                style={{
+                  height: flatListHeight,
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ReelCard
+                  reel={item}
+                  active={index === activeIndex}
+                  onLike={like}
+                  onShare={share}
+                  onEndedNext={onEndedNext}
+                />
+              </View>
+            )}
+            viewabilityConfig={viewabilityConfig}
+            onViewableItemsChanged={onViewableItemsChanged}
+            contentContainerStyle={{ paddingBottom: 0 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }

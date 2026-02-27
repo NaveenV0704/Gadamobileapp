@@ -82,9 +82,12 @@ export default function ReelCard({
     <View style={styles.container}>
       <View style={styles.videoContainer}>
         <PostVideo
+          showProgress
           uri={videoUrl}
           active={active}
           onEnd={() => onEndedNext(reel.id)}
+          fill
+          fit="cover"
         />
         <View style={styles.rightRail}>
           <TouchableOpacity onPress={handleLikePress} activeOpacity={0.8}>
@@ -134,6 +137,7 @@ export default function ReelCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -143,6 +147,16 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     borderRadius: 24,
     overflow: "hidden",
+  },
+  inactivePlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000000",
+  },
+  inactiveText: {
+    color: "#9CA3AF",
+    fontSize: 12,
   },
   fallback: {
     flex: 1,

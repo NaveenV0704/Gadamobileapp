@@ -195,60 +195,47 @@ export function PostCard({ post, active }: PostCardProps) {
   const isLiked = user ? likes.includes(user.id) : false;
 
   useEffect(() => {
-    // If post data changes, sync local state
-    if (post.likes) setLikes(post.likes);
-    if (post.comments) setComments(post.comments);
-    if (post.myReaction) setMyReaction(post.myReaction);
-  }, [post]);
+    setLikes(post.likes || []);
+    setComments(post.comments || []);
+    setMyReaction(post.myReaction || null);
+  }, [post.id]); // 👈 only depend on post.id
 
   const handleReaction = async (reaction: string) => {
     if (!user) return;
+
     setReactionPickerVisible(false);
 
-    // Optimistic update
-    const alreadyLiked = likes.includes(user.id);
-    let newLikes = [...likes];
-
-    setMyReaction(reaction);
-
-    if (!alreadyLiked) {
-      newLikes.push(user.id);
-    }
-    setLikes(newLikes);
-
     try {
-      await reactToPost(post.id, reaction, headers);
+      const res: any = await reactToPost(post.id, reaction, headers);
+
+      if (res?.liked) {
+        setMyReaction(reaction); // 👈 FIX
+        setLikes((prev) =>
+          prev.includes(user.id) ? prev : [...prev, user.id],
+        );
+      } else {
+        setMyReaction(null);
+        setLikes((prev) => prev.filter((id) => id !== user.id));
+      }
     } catch (error) {
       console.error("Failed to react", error);
-      // We could revert here, but simpler to just log for now
     }
   };
 
   const toggleLike = async () => {
     if (!user) return;
-    const alreadyLiked = likes.includes(user.id);
-
-    if (alreadyLiked) {
-      // Unlike
-      const newLikes = likes.filter((id) => id !== user.id);
-      setLikes(newLikes);
-      setMyReaction(null);
-      try {
-        await reactToPost(post.id, "like", headers);
-      } catch (error) {
-        setLikes(likes);
-      }
-    } else {
-      // Like
-      const newLikes = [...likes, user.id];
-      setLikes(newLikes);
-      setMyReaction("like");
-      try {
-        await reactToPost(post.id, "like", headers);
-      } catch (error) {
-        setLikes(likes);
-        setMyReaction(null);
-      }
+    try {
+      const res: any = await reactToPost(post.id, "like", headers);
+      const liked = !!res?.liked;
+      setMyReaction(liked ? "like" : null);
+      setLikes((prev) => {
+        const has = prev.includes(user.id);
+        if (liked && !has) return [...prev, user.id];
+        if (!liked && has) return prev.filter((id) => id !== user.id);
+        return prev;
+      });
+    } catch (error) {
+      console.error("Failed to toggle like", error);
     }
   };
 
@@ -265,18 +252,28 @@ export function PostCard({ post, active }: PostCardProps) {
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !user) return;
+
     setSubmittingComment(true);
+
     try {
-      const res = await commentOnPost(post.id, newComment, headers);
-      // Optimistic add
+      const res = await commentOnPost(post.id, newComment.trim(), headers);
+
+      const serverComment: any = res || {};
+
       const newCommentObj: Comment = {
-        id: Date.now().toString(), // Temp ID
-        userId: user.id,
-        user: user, // Attach current user
-        content: newComment,
-        createdAt: new Date().toISOString(),
+        id: String(serverComment.id),
+        userId: String(serverComment.userId),
+        content: serverComment.content,
+        createdAt: serverComment.createdAt,
+        user: {
+          id: String(serverComment.userId),
+          firstname: serverComment.username, // 👈 map username
+          lastname: "",
+          profileImage: serverComment.profileImage,
+        },
       };
-      setComments([...comments, newCommentObj]);
+
+      setComments((prev) => [...prev, newCommentObj]);
       setNewComment("");
     } catch (error) {
       console.error("Failed to comment", error);
@@ -322,7 +319,12 @@ export function PostCard({ post, active }: PostCardProps) {
         {/* Videos */}
         {mediaVideos.length > 0 &&
           mediaVideos.map((vid, idx) => (
-            <PostVideo key={`vid-${idx}`} uri={buildUrl(vid)} active={active} />
+            <PostVideo
+              key={`vid-${idx}`}
+              uri={buildUrl(vid)}
+              active={active}
+              showProgress
+            />
           ))}
       </View>
 
@@ -396,20 +398,26 @@ export function PostCard({ post, active }: PostCardProps) {
       {/* Comments Section */}
       {showComments && (
         <View className="mt-4 border-t border-gray-100 pt-3">
-          {comments.map((comment, idx) => (
-            <View key={comment.id || idx} className="mb-3 flex-row">
-              <Avatar source={buildUrl(comment.user?.profileImage)} size="sm" />
-
-              <View className="ml-2 bg-gray-100 p-2 rounded-lg flex-1">
-                <Text className="font-bold text-xs">
-                  {comment.user
-                    ? `${comment.user.firstname} ${comment.user.lastname}`
-                    : "User"}
-                </Text>
-                <Text className="text-gray-800 text-sm">{comment.content}</Text>
+          {comments.map((comment, idx) => {
+            const avatarSrc =
+              (comment as any).user?.profileImage ??
+              (comment as any).profileImage ??
+              "";
+            const displayName = (comment as any).user
+              ? `${(comment as any).user.firstname} ${(comment as any).user.lastname}`
+              : (comment as any).username || "User";
+            return (
+              <View key={comment.id || idx} className="mb-3 flex-row">
+                <Avatar source={buildUrl(avatarSrc)} size="sm" />
+                <View className="ml-2 bg-gray-100 p-2 rounded-lg flex-1">
+                  <Text className="font-bold text-xs">{displayName}</Text>
+                  <Text className="text-gray-800 text-sm">
+                    {comment.content}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
 
           <View className="flex-row items-center mt-2">
             <TextInput
