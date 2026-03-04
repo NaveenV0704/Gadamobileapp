@@ -20,7 +20,9 @@
         "backgroundColor": "#ffffff"
       },
       "label": "Gada Chat",
-      "package": "com.gada.mobile"
+      "package": "com.gada.mobile",
+      "versionCode": 1,
+      "permissions": ["CAMERA", "RECORD_AUDIO"]
     },
     "androidStatusBar": {
       "backgroundColor": "#ffffff",

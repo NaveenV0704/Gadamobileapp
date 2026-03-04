@@ -70,6 +70,7 @@ export default function StoryViewer({
   const [isPaused, setIsPaused] = useState(false);
   const [viewers, setViewers] = useState<any[]>([]);
   const [viewersCount, setViewersCount] = useState(0);
+  const [successMsg, setSuccessMsg] = useState<string>("");
   const { accessToken, user } = useAuth();
   const headers = useAuthHeader(accessToken);
 
@@ -306,6 +307,8 @@ export default function StoryViewer({
         emojiCode,
         headers,
       );
+      setSuccessMsg("Reaction sent");
+      setTimeout(() => setSuccessMsg(""), 1500);
     } catch (e) {
       console.error(e);
     }
@@ -323,6 +326,8 @@ export default function StoryViewer({
         text,
         headers,
       );
+      setSuccessMsg("Message sent");
+      setTimeout(() => setSuccessMsg(""), 1500);
     } catch (e) {
       console.error(e);
     }
@@ -536,6 +541,15 @@ export default function StoryViewer({
             <View className="absolute bottom-0 left-0 right-0 z-30">
               <SafeAreaView edges={["bottom"]}>
                 <View className="px-4 pb-4">
+                  {successMsg ? (
+                    <View className="items-center mb-2">
+                      <View className="bg-green-600/80 px-3 py-1 rounded-full">
+                        <Text className="text-white text-xs font-semibold">
+                          {successMsg}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
                   {/* Reply Input */}
                   <View className="flex-row items-center gap-2 mb-4">
                     <View className="flex-1 flex-row items-center bg-transparent border border-white/50 rounded-full px-4 py-1">

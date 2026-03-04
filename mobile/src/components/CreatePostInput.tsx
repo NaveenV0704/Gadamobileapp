@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { Avatar } from "./ui/Avatar";
 import { Image, Video as VideoIcon, Radio, X } from "lucide-react-native";
+import { LiveModal } from "./LiveModal";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { createPost, uploadMedia } from "../services/postService";
@@ -26,6 +27,7 @@ export function CreatePostInput({ onPostSuccess }: CreatePostInputProps) {
   const [content, setContent] = useState("");
   const [media, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [liveOpen, setLiveOpen] = useState(false);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -138,18 +140,21 @@ export function CreatePostInput({ onPostSuccess }: CreatePostInputProps) {
         </TouchableOpacity>
         <TouchableOpacity
           className="flex-1 flex-row items-center justify-center space-x-2 py-2 border border-gray-200 rounded-lg"
-          onPress={() =>
-            Alert.alert(
-              "Coming Soon",
-              "Live streaming is coming soon to mobile!",
-            )
-          }
+          onPress={() => setLiveOpen(true)}
         >
           <Radio size={20} color="#ef4444" />
           <Text className="text-gray-700 font-medium">Go Live</Text>
         </TouchableOpacity>
       </View>
 
+      <LiveModal
+        visible={liveOpen}
+        onClose={() => setLiveOpen(false)}
+        onStarted={() => {
+          setLiveOpen(false);
+          Alert.alert("Live", "Live started");
+        }}
+      />
       <TouchableOpacity
         onPress={handlePost}
         disabled={isSubmitting || (!content.trim() && media.length === 0)}

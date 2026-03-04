@@ -36,7 +36,7 @@ const REACTION_EMOJIS: Record<string, string> = {
   angry: "😡",
 };
 
-const CollapsibleText = ({ text }: { text: string }) => {
+const CollapsibleText = ({ text }: { text?: string }) => {
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
 
@@ -45,7 +45,9 @@ const CollapsibleText = ({ text }: { text: string }) => {
     setCanExpand(false);
   }, [text]);
 
-  const isLikelyLong = text.length > 80 || (text.match(/\n/g) || []).length > 2;
+  const safeText = typeof text === "string" ? text : "";
+  const isLikelyLong =
+    safeText.length > 80 || (safeText.match(/\n/g) || []).length > 2;
 
   const onTextLayout = useCallback(
     (e: any) => {
@@ -66,7 +68,7 @@ const CollapsibleText = ({ text }: { text: string }) => {
         numberOfLines={expanded || !showButton ? undefined : 3}
         onTextLayout={onTextLayout}
       >
-        {text}
+        {safeText}
       </Text>
       {showButton && (
         <TouchableOpacity
@@ -265,12 +267,7 @@ export function PostCard({ post, active }: PostCardProps) {
         userId: String(serverComment.userId),
         content: serverComment.content,
         createdAt: serverComment.createdAt,
-        user: {
-          id: String(serverComment.userId),
-          firstname: serverComment.username, // 👈 map username
-          lastname: "",
-          profileImage: serverComment.profileImage,
-        },
+        user: user,
       };
 
       setComments((prev) => [...prev, newCommentObj]);
