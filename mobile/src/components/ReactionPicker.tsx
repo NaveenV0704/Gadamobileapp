@@ -4,9 +4,9 @@ import { View, Text, TouchableOpacity, Modal, Pressable } from "react-native";
 const REACTIONS = [
   { label: "Like", emoji: "👍", value: "like" },
   { label: "Love", emoji: "❤️", value: "love" },
-  { label: "Care", emoji: "🥰", value: "care" },
   { label: "Haha", emoji: "😆", value: "haha" },
-  { label: "Wow", emoji: "😮", value: "wow" },
+  { label: "Yay", emoji: "🤩", value: "yay" },
+  { label: "Wow", emoji: "😲", value: "wow" },
   { label: "Sad", emoji: "😢", value: "sad" },
   { label: "Angry", emoji: "😡", value: "angry" },
 ];
@@ -31,7 +31,10 @@ export default function ReactionPicker({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 bg-black/20 justify-center items-center" onPress={onClose}>
+      <Pressable
+        className="flex-1 bg-black/20 justify-center items-center"
+        onPress={onClose}
+      >
         <View className="bg-white rounded-full flex-row p-3 shadow-xl border border-gray-200 items-center justify-around w-[90%] max-w-sm">
           {REACTIONS.map((r) => (
             <TouchableOpacity

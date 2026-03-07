@@ -231,7 +231,7 @@ export default function Friends() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <StatusBar style="dark" />
       
       {/* Toast Component */}

@@ -7,8 +7,12 @@ import {
   TextInput,
   Image,
   Modal,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAuthHeader, useAuthHeaderupload } from "../../hooks/useAuthHeader";
@@ -361,7 +365,7 @@ export default function Messenger() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <View className="flex-1 flex-row">
         {/* Left panel: conversations */}
         <View className="w-2/5 border-r border-gray-200">
@@ -670,7 +674,7 @@ export default function Messenger() {
                 />
               </View>
 
-              <View className="border-t border-gray-200 px-3 py-2">
+              <View className="border-t border-gray-200 px-3 pt-2 pb-3">
                 <View className="flex-row items-center bg-gray-100 rounded-full px-3">
                   <TextInput
                     value={text}

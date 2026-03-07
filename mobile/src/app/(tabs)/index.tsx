@@ -297,7 +297,10 @@ export default function Feed() {
             const id = getPostId(item);
             return (
               <View className="bg-white mb-2 border-y border-gray-200 shadow-sm">
-                <PostCard post={item as Post} active={id != null && id === activePostId} />
+                <PostCard
+                  post={item as Post}
+                  active={id != null && id === activePostId}
+                />
               </View>
             );
           }}

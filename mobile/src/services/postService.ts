@@ -190,6 +190,49 @@ export async function fetchProfileSummary(
   return response.json();
 }
 
+export async function checkFollowingStatus(
+  profileId: string | number,
+  headers: Record<string, string>,
+): Promise<{ isFollowing: boolean }> {
+  const url = `${API_BASE_URL}/api/follow/${profileId}/is-following`;
+
+  const requestHeaders = { ...headers };
+  delete requestHeaders["Content-Type"];
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: requestHeaders,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[PostService] Check following status failed:", text);
+    throw new Error(`Failed to check following status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function toggleFollowUser(
+  profileId: string | number,
+  headers: Record<string, string>,
+): Promise<{ ok: boolean; message: string; isFollowing: boolean }> {
+  const url = `${API_BASE_URL}/api/follow/${profileId}/follow`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[PostService] Toggle follow failed:", text);
+    throw new Error(`Failed to toggle follow: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function reactToPost(
   postId: string | number,
   reaction: string,
@@ -200,7 +243,35 @@ export async function reactToPost(
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify({ reaction }),
   });
-  if (!response.ok) throw new Error("Failed to react");
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    console.error(
+      `[PostService] React to post failed: ${response.status} - ${text}`,
+    );
+    throw new Error("Failed to react");
+  }
+  return response.json();
+}
+
+export async function sharePost(
+  postId: string | number,
+  comment: string | undefined,
+  headers: Record<string, string>,
+): Promise<{ ok: boolean }> {
+  const url = `${API_BASE_URL}/api/posts/${postId}/share`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ comment }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[PostService] Share post failed:", text);
+    throw new Error(`Failed to share post: ${response.status}`);
+  }
+
   return response.json();
 }
 

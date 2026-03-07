@@ -1,11 +1,13 @@
 import { Tabs } from "expo-router";
 import { Home, Users, MessageCircle, Bell } from "lucide-react-native";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/AuthContext";
 import { Avatar } from "../../components/ui/Avatar";
 
 export default function TabLayout() {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -19,10 +21,11 @@ export default function TabLayout() {
             backgroundColor: "#ffffff",
             borderTopWidth: 1,
             borderTopColor: "#e5e7eb",
-            height: 60,
-            paddingBottom: 8,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
             paddingTop: 8,
           },
+          tabBarHideOnKeyboard: true,
         }}
       >
         <Tabs.Screen

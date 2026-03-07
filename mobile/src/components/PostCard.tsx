@@ -3,9 +3,9 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Share,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Post, User, Comment } from "../types";
 import { Avatar } from "./ui/Avatar";
@@ -16,8 +16,10 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { PostVideo } from "./PostVideo";
 import { useAuth } from "../contexts/AuthContext";
 import { useAuthHeader } from "../hooks/useAuthHeader";
-import { reactToPost, commentOnPost } from "../services/postService";
+import { useRouter } from "expo-router";
+import { reactToPost, commentOnPost, sharePost } from "../services/postService";
 import ReactionPicker from "./ReactionPicker";
+import ShareModal from "./ShareModal";
 
 interface PostCardProps {
   post: Post;
@@ -29,9 +31,9 @@ interface PostCardProps {
 const REACTION_EMOJIS: Record<string, string> = {
   like: "👍",
   love: "❤️",
-  care: "🥰",
   haha: "😆",
-  wow: "😮",
+  yay: "🤩",
+  wow: "😲",
   sad: "😢",
   angry: "😡",
 };
@@ -133,6 +135,7 @@ const PostImage = ({ uri, index }: { uri: string; index: number }) => {
 export function PostCard({ post, active }: PostCardProps) {
   const { user, accessToken } = useAuth();
   const headers = useAuthHeader(accessToken);
+  const router = useRouter();
   const author = post.author || {};
   const timeAgo = post.createdAt
     ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
@@ -144,6 +147,8 @@ export function PostCard({ post, active }: PostCardProps) {
   const [comments, setComments] = useState<Comment[]>(post.comments || []);
   const [showComments, setShowComments] = useState(false);
   const [reactionPickerVisible, setReactionPickerVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [myReaction, setMyReaction] = useState<string | null>(
@@ -241,14 +246,20 @@ export function PostCard({ post, active }: PostCardProps) {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (comment: string) => {
+    if (!user) return;
+    setSharing(true);
     try {
-      await Share.share({
-        message: `Check out this post from ${author.firstname}: ${post.content}`,
-        url: `${API_BASE_URL}/posts/${post.id}`, // Hypothetical web URL
-      });
+      const res = await sharePost(post.id, comment, headers);
+      if (res?.ok) {
+        Alert.alert("Success", "Post shared successfully");
+        setShareModalVisible(false);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to share post", error);
+      Alert.alert("Error", "Failed to share post. Please try again.");
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -279,34 +290,58 @@ export function PostCard({ post, active }: PostCardProps) {
     }
   };
 
+  const navigateToProfile = () => {
+    if (author?.id) {
+      if (Number(author.id) === Number(user?.id)) {
+        router.push("/(tabs)/profile");
+      } else {
+        router.push({
+          pathname: "/profile/[userId]",
+          params: { userId: author.id },
+        });
+      }
+    }
+  };
+
   return (
     <View className="bg-white p-4 mb-2">
       {/* Header */}
       <View className="flex-row items-center mb-3">
-        <Avatar source={buildUrl(author?.profileImage)} />
+        <TouchableOpacity onPress={navigateToProfile}>
+          <Avatar source={buildUrl(author?.profileImage)} />
+        </TouchableOpacity>
 
         <View className="ml-3 flex-1">
           <View className="flex-row items-center">
-            <Text className="font-semibold text-gray-900">
-              {author.firstname} {author.lastname}
-            </Text>
+            {/* <TouchableOpacity onPress={navigateToProfile}>
+              <Text className="font-bold text-gray-900 text-[20px]">
+                {author.firstname} {author.lastname}
+              </Text>
+            </TouchableOpacity> */}
             {isLive && (
               <View className="bg-red-500 px-2 py-0.5 rounded ml-2">
                 <Text className="text-white text-[10px] font-bold">LIVE</Text>
               </View>
             )}
           </View>
-          <Text className="text-xs text-gray-500">
-            @{author.username} • {timeAgo}
-          </Text>
+          <TouchableOpacity onPress={navigateToProfile}>
+            <Text className="text-md text-black">
+              <Text className="font-semibold">{author.username}</Text> •{" "}
+              {timeAgo}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Content */}
-      <CollapsibleText text={post.content} />
+      {post.content && <CollapsibleText text={post.content} />}
 
       {/* Media (Images & Videos) */}
-      <View className="mb-3 rounded-lg overflow-hidden gap-y-2">
+      <View
+        className={`rounded-lg overflow-hidden gap-y-2 ${
+          post.content ? "mb-3" : "mt-1 mb-3"
+        }`}
+      >
         {/* Images */}
         {mediaImages.length > 0 &&
           mediaImages.map((img, idx) => (
@@ -377,13 +412,21 @@ export function PostCard({ post, active }: PostCardProps) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={handleShare}
+          onPress={() => setShareModalVisible(true)}
           className="flex-row items-center space-x-2 px-2 py-1 rounded-md active:bg-gray-100"
         >
           <Share2 size={20} color="#6b7280" />
           <Text className="text-gray-600 font-medium">Share</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Share Modal */}
+      <ShareModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        onShare={handleShare}
+        loading={sharing}
+      />
 
       {/* Reaction Picker Modal */}
       <ReactionPicker

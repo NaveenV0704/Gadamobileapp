@@ -331,7 +331,7 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <FlatList
         data={activeTab === "posts" ? posts : []}
         keyExtractor={(item, index) => String(item.id || index)}
