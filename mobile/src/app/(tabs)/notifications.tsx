@@ -239,7 +239,7 @@ export default function Notifications() {
   const data = useMemo(() => items, [items]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
         <Text className="text-lg font-semibold">Notifications</Text>
         <View className="flex-row items-center">

@@ -365,13 +365,18 @@ export default function Messenger() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-      <View className="flex-1 flex-row">
+    <SafeAreaView
+      edges={["top"]}
+      style={{ flex: 1, backgroundColor: "#ffffff" }}
+    >
+      <View className="px-4 py-3 border-b border-gray-200 bg-white">
+        <Text className="text-lg font-semibold">Messages</Text>
+      </View>
+      <View className="flex-1 flex-row ">
         {/* Left panel: conversations */}
         <View className="w-2/5 border-r border-gray-200">
-          <View className="px-3 py-2 border-b border-gray-200">
-            <Text className="text-lg font-semibold">Messages</Text>
-            <View className="mt-2 flex-row items-center bg-gray-100 rounded-full px-3">
+          <View className="px-3 h-14 justify-center border-b border-gray-200">
+            <View className=" flex-row items-center bg-gray-100 rounded-full px-2">
               <TextInput
                 value={search}
                 onChangeText={setSearch}
@@ -472,7 +477,7 @@ export default function Messenger() {
 
           {activeConversation && (
             <View className="flex-1">
-              <View className="px-3 py-2 border-b border-gray-200 flex-row items-center">
+              <View className="px-3 h-14 border-b border-gray-200 flex-row items-center">
                 <View className="h-9 w-9 rounded-full bg-gray-300 mr-3 items-center justify-center overflow-hidden">
                   {activeConversation.peer.avatar ? (
                     <Image
@@ -545,7 +550,7 @@ export default function Messenger() {
                 <FlatList
                   data={messages || []}
                   keyExtractor={(item) => String(item.id)}
-                  contentContainerStyle={{ padding: 12 }}
+                  contentContainerStyle={{ padding: 12, paddingTop: 8 }}
                   renderItem={({ item }) => {
                     const isMine = item.authorId === user?.id;
                     return (

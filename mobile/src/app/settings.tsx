@@ -638,7 +638,7 @@ export default function SettingsScreen() {
   const [tab, setTab] = useState<TabKey>("general");
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View className="px-4 pt-2 pb-3 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}

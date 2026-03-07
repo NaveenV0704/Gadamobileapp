@@ -137,7 +137,7 @@ export default function GroupsIndex() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View className="px-4 py-3 bg-white border-b border-gray-100 flex-row items-center justify-between">
         <View>
           <Text className="text-xl font-bold text-gray-900">Groups</Text>

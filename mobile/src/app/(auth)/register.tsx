@@ -75,7 +75,7 @@ export default function Register() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-cardBg">
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <ScrollView
         contentContainerStyle={{
           padding: 24,

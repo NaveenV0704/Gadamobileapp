@@ -126,7 +126,7 @@ export default function UserProfileView() {
   const photoPreviews = summary?.previews?.photos || [];
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-2 border-b border-gray-100">
         <TouchableOpacity onPress={() => router.back()} className="p-1">

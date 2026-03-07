@@ -5,9 +5,7 @@ import SavedPostCard from "../components/SavedPostCard";
 
 export default function Saved() {
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar style="dark" />
-
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View className="px-6 py-4 bg-white">
         <Text className="text-3xl font-extrabold text-gray-900 tracking-tight">Saved</Text>
       </View>

@@ -331,7 +331,10 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView
+      edges={["top"]}
+      style={{ flex: 1, backgroundColor: "#ffffff" }}
+    >
       <FlatList
         data={activeTab === "posts" ? posts : []}
         keyExtractor={(item, index) => String(item.id || index)}
@@ -341,7 +344,7 @@ export default function Profile() {
               <View className="flex-row items-center">
                 <Image
                   source={{
-                    uri: `${process.env.EXPO_PUBLIC_API_BASE_URL}/uploads/gadalogo.png`,
+                    uri: `${ASSET_BASE_URL}/uploads/gadalogo.png`,
                   }}
                   className="w-8 h-8 mr-2"
                   resizeMode="contain"

@@ -21,9 +21,13 @@ export default function TabLayout() {
             backgroundColor: "#ffffff",
             borderTopWidth: 1,
             borderTopColor: "#e5e7eb",
-            height: 60 + insets.bottom,
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            height: 65 + insets.bottom,
+            paddingBottom: Math.max(insets.bottom, 10),
             paddingTop: 8,
+            elevation: 10,
+          },
+          tabBarItemStyle: {
+            paddingVertical: 5,
           },
           tabBarHideOnKeyboard: true,
         }}

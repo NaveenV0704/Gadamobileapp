@@ -47,7 +47,8 @@ export default function Login() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-cardBg px-6 justify-center">
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
+      <View className="flex-1 px-6 justify-center">
       {/* Logo + Title */}
       <View className="items-center mb-6">
         <View className="flex-row items-center">
@@ -132,6 +133,7 @@ export default function Login() {
           </Link>
         </View>
       </View>
+    </View>
     </SafeAreaView>
   );
 }

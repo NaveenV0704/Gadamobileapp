@@ -433,7 +433,7 @@ export default function GroupView() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["bottom"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <FlatList
         data={posts}
         renderItem={({ item }) => (

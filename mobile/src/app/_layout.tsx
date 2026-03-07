@@ -9,6 +9,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <VideoSoundProvider>
+          <StatusBar style="dark" translucent backgroundColor="transparent" />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="(auth)" />
@@ -57,7 +58,6 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
           </Stack>
-          <StatusBar style="dark" backgroundColor="#ffffff" />
         </VideoSoundProvider>
       </AuthProvider>
     </SafeAreaProvider>
