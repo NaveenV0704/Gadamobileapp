@@ -21,17 +21,16 @@ import { StoryProvider } from "../../contexts/StoryContext";
 import { Stories } from "../../components/Stories";
 import { CreatePostInput } from "../../components/CreatePostInput";
 import { API_BASE_URL, ASSET_BASE_URL } from "../../constants/config";
+import SponsoredAdCard from "../../components/SponsoredAdCard";
 
 // --- Helpers from Web Feed.tsx ---
 
-/** Normalize backend -> { promotedPost, list, nextCursor } */
+/** Normalize backend -> { list, nextCursor } */
 function normalizePosts(raw: any): {
-  promotedPost: any | null;
   list: any[];
   nextCursor?: string | null;
 } {
-  if (Array.isArray(raw))
-    return { promotedPost: null, list: raw, nextCursor: null };
+  if (Array.isArray(raw)) return { list: raw, nextCursor: null };
   if (raw && typeof raw === "object") {
     // Some endpoints return data in .data, others in .items
     const list = Array.isArray(raw.items)
@@ -40,12 +39,11 @@ function normalizePosts(raw: any): {
         ? raw.data
         : [];
     return {
-      promotedPost: raw.promoted ?? null,
       list: list,
       nextCursor: raw.nextCursor ?? null,
     };
   }
-  return { promotedPost: null, list: [], nextCursor: null };
+  return { list: [], nextCursor: null };
 }
 
 /** Extract numeric post id from row */
@@ -111,14 +109,10 @@ export default function Feed() {
           withPromoted: isRefresh ? 1 : 0, // Only fetch promoted on first page
         });
 
-        const {
-          promotedPost: newPromoted,
-          list: newItems,
-          nextCursor,
-        } = normalizePosts(data);
+        const { list: newItems, nextCursor } = normalizePosts(data);
 
         if (isRefresh) {
-          setRawPosts({ promoted: newPromoted, items: newItems });
+          setRawPosts({ items: newItems });
           // If backend returns nextCursor, use it.
           // Otherwise, if we have items, use the last item's ID as offset for next page.
           if (nextCursor) {
@@ -142,7 +136,6 @@ export default function Feed() {
             );
 
             return {
-              promoted: prev?.promoted,
               items: [...prevItems, ...uniqueNewItems],
             };
           });
@@ -207,22 +200,17 @@ export default function Feed() {
   // --- Normalization & Live Logic ---
 
   // normalize posts shape
-  const { promotedPost, list } = useMemo(
-    () => normalizePosts(rawPosts),
-    [rawPosts],
-  );
+  const list = rawPosts?.items || [];
 
   // visible post ids (for live-status batch call)
   const visibleIds = useMemo(() => {
     const ids: number[] = [];
-    const pid = promotedPost ? getPostId(promotedPost) : null;
-    if (pid) ids.push(pid);
     for (const p of list) {
       const id = getPostId(p);
       if (id) ids.push(id);
     }
     return Array.from(new Set(ids));
-  }, [promotedPost, list]);
+  }, [list]);
 
   // single batched poll for live status
   useEffect(() => {
@@ -259,12 +247,6 @@ export default function Feed() {
   }, [authHeader, visibleIds]);
 
   // attach live info to each post
-  const promotedWithLive = useMemo(() => {
-    if (!promotedPost) return null;
-    const pid = getPostId(promotedPost);
-    return pid ? { ...promotedPost, live: liveMap[pid] || null } : promotedPost;
-  }, [promotedPost, liveMap]);
-
   const listWithLive = useMemo(() => {
     if (!list?.length) return [];
     return list.map((p: any) => {
@@ -275,7 +257,10 @@ export default function Feed() {
 
   return (
     <StoryProvider>
-      <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
+      <SafeAreaView
+        edges={["top"]}
+        style={{ flex: 1, backgroundColor: "#ffffff" }}
+      >
         {/* Brand Header */}
         <View className="bg-white px-4 py-2 flex-row items-center border-b border-gray-200">
           <Image
@@ -317,23 +302,8 @@ export default function Feed() {
                 <Stories />
               </View>
 
-              {/* Promoted Post */}
-              {promotedWithLive && (
-                <View className="bg-white mb-2 border-y border-gray-200">
-                  <View className="px-4 py-2 border-b border-gray-100">
-                    <Text className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Promoted
-                    </Text>
-                  </View>
-                  <PostCard
-                    post={promotedWithLive as Post}
-                    active={
-                      getPostId(promotedWithLive) != null &&
-                      getPostId(promotedWithLive) === activePostId
-                    }
-                  />
-                </View>
-              )}
+              {/* Sponsored Ad Card */}
+              <SponsoredAdCard placement="newsfeed" />
             </View>
           }
           ListEmptyComponent={

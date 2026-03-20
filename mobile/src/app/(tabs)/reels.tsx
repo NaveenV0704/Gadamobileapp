@@ -37,7 +37,7 @@ export default function Reels() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const { height: windowHeight } = Dimensions.get("window");
-  const [flatListHeight, setFlatListHeight] = useState(windowHeight - 150);
+  const [flatListHeight, setFlatListHeight] = useState(windowHeight);
 
   const loadReels = async () => {
     if (!accessToken) return;
@@ -142,29 +142,7 @@ export default function Reels() {
   const { height } = Dimensions.get("window");
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <View className="px-4 py-3 border-b border-gray-900 bg-black flex-row items-center justify-between">
-        <View>
-          <Text className="text-lg font-semibold text-white">Reels</Text>
-          <Text className="text-xs text-gray-400 mt-1">
-            Short vertical videos from people on Gada.
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => router.push("/reels-create")}
-          className="flex-row items-center bg-white/10 px-3 py-1.5 rounded-full"
-        >
-          <Plus size={16} color="#ffffff" />
-          <Text className="text-xs text-white ml-1 font-medium">
-            Create reel
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View className="px-4 py-1">
-        <Text className="text-[10px] text-gray-500">{reels.length} reels</Text>
-      </View>
-
+    <View className="flex-1 bg-black">
       <View
         className="flex-1"
         onLayout={(e) => setFlatListHeight(e.nativeEvent.layout.height)}
@@ -201,8 +179,6 @@ export default function Reels() {
                 style={{
                   height: flatListHeight,
                   width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
                 }}
               >
                 <ReelCard
@@ -221,6 +197,20 @@ export default function Reels() {
           />
         )}
       </View>
-    </SafeAreaView>
+
+      {/* Floating Header */}
+      <View className="absolute top-12 left-0 right-0 z-10 px-4 flex-row items-center justify-between">
+        <View>
+          <Text className="text-2xl font-bold text-white shadow-sm">Reels</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push("/reels-create")}
+          className="flex-row items-center bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-md"
+        >
+          <Plus size={16} color="#ffffff" />
+          <Text className="text-xs text-white ml-1 font-medium">Create</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

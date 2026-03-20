@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useEvent } from "expo";
 import { Volume2, VolumeX } from "lucide-react-native";
+import { useIsFocused } from "@react-navigation/native";
 
 type VideoSoundContextValue = {
   muted: boolean;
@@ -57,6 +58,7 @@ interface PostVideoProps {
   fill?: boolean;
   fit?: "contain" | "cover";
   showProgress?: boolean; // ✅ NEW
+  height?: number; // ✅ Added height prop
 }
 
 export const PostVideo = ({
@@ -67,10 +69,13 @@ export const PostVideo = ({
   fill = false,
   fit = "contain",
   showProgress = false, // default false (for stories)
+  height, // ✅ Added height prop
 }: PostVideoProps) => {
+  const isFocused = useIsFocused();
+
   if (!uri) {
     return (
-      <View style={styles.video}>
+      <View style={[styles.video, height ? { height } : null]}>
         <View style={styles.overlay}>
           <ActivityIndicator color="#ffffff" />
         </View>
@@ -93,7 +98,7 @@ export const PostVideo = ({
     player.muted = muted;
     player.staysActiveInBackground = false;
 
-    if (active) player.play();
+    if (active && isFocused) player.play();
     else player.pause();
 
     if (onEnd) {
@@ -101,15 +106,19 @@ export const PostVideo = ({
     }
   });
 
-  // play / pause on active change
+  // play / pause on active/focus change
   useEffect(() => {
     if (!player || !isMounted.current) return;
     try {
-      active ? player.play() : player.pause();
+      if (active && isFocused) {
+        player.play();
+      } else {
+        player.pause();
+      }
     } catch (e) {
       console.warn("[PostVideo] Failed to change playback state", e);
     }
-  }, [active, player]);
+  }, [active, isFocused, player]);
 
   // mute sync
   useEffect(() => {
@@ -139,7 +148,13 @@ export const PostVideo = ({
       : 0;
 
   return (
-    <View style={[styles.video, fill && styles.videoFill]}>
+    <View
+      style={[
+        styles.video,
+        fill && styles.videoFill,
+        height ? { height } : null,
+      ]}
+    >
       <TouchableWithoutFeedback onPress={toggleMuted}>
         <View style={StyleSheet.absoluteFill}>
           <VideoView
@@ -186,7 +201,7 @@ export const PostVideo = ({
 const styles = StyleSheet.create({
   video: {
     width: "100%",
-    height: 256,
+    height: 550,
     backgroundColor: "black",
   },
   videoFill: {

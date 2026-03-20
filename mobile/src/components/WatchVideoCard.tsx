@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   video: {
     width: "100%",
-    height: 320,
+    height: 550,
   },
   muteButton: {
     position: "absolute",

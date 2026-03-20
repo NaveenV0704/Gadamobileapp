@@ -354,7 +354,7 @@ export function PostCard({ post, active }: PostCardProps) {
             <PostVideo
               key={`vid-${idx}`}
               uri={buildUrl(vid)}
-              active={active}
+              active={active && idx === 0}
               showProgress
             />
           ))}
